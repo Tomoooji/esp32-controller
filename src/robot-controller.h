@@ -76,6 +76,75 @@ public:
   }
 };
 
+///////////////////////////
+
+#include <Wire.h>
+
+struct InputData{
+    //uint32_t angle;//degree
+    //uint32_t dist;
+    //uint32_t turn;
+} __attribute__((packed));
+
+struct ConfigData config{
+  uint8_t adress;
+  int sda,scl;
+};
+
+class Controller_I2C : public Controller{
+private:
+  //uint8_t _address;
+  //bool _isNewDataAvailable;
+public:
+  // コンストラクタ（ESP32のI2Cスレーブアドレスを指定、初期値は 0x2A など）
+  //memset(&_currentCmd, 0, sizeof(RobotCommand)); // 構造体をゼロクリア
+  using Controller::Controller;
+
+  // 初期化処理（setup内で呼ぶ）
+  bool begin() override{
+    Wire.begin(this->config.adress, this->config.sda, this->config.scl, 100000); // 100kHzで起動
+  }
+
+  // ポーリング用関数：データが来ていたら構造体に吸い上げる（loop内で毎ターン呼ぶ）
+  bool update() override{
+    int availableBytes = Wire.available();
+        
+    // 構造体のサイズ以上のデータがバッファに届いているかチェック
+    if (availableBytes >= sizeof(InputData)) {
+      // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
+      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&command);
+      for (size_t i = 0; i < sizeof(InputData); i++) {
+        bytePtr[i] = Wire.read();
+      }
+      
+      // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
+      while (Wire.available() > 0) {
+        Wire.read();
+      }
+      retirn true;
+      //_isNewDataAvailable = true; // 新着フラグを立てる
+    }
+    retirn false;
+  }
+  /*
+    // 新しいデータが来ているか確認し、フラグを戻す
+    bool hasNewData() {
+        if (_isNewDataAvailable) {
+            _isNewDataAvailable = false;
+            return true;
+        }
+        return false;
+    }
+
+    // 格納された構造体データを取得する
+    const RobotCommand& getCommand() const {
+        return _currentCmd;
+    }
+  */
+};
+
+///////////////////////////
+
 /*
 #include <esp_now.h>
 #include <WiFi.h>
