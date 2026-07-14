@@ -159,23 +159,55 @@ struct InputData{
 */
 
 struct Config_ESPNOW{
+  volatile bool recieve_new;
+};
+
+template <typename InputData>
+class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
+private:
+  inline static Controller_ESPNOW *_instance = nullptr;
+
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
+    if(_instance->config.receive_new || sizeof(InputData) != len) return;
+    memcpy(&_instance->command, data, sizeof(InputData));
+    _instance->config.receive_new = true;
+  }
+
+public:
+  using Controller<Config_ESPNOW,InputData>::Controller;
+  bool begin() override{
+    WiFi.mode(WIFI_STA);
+    if(esp_now_init() != ESP_OK) return false;
+    _instance = this;
+    esp_now_register_recv_cb(static_recv_cb);
+    return true;
+  }
+  bool update() override{
+    
+  }
+
+};
+
+struct Config_ESPNOW_r{
   esp_now_peer_info_t peer_info;
-  const uint8_t* self_address = nullptr;
-  const uint8_t* rimocon_address = nullptr;
+  const uint8_t* address_rimocon = nullptr;
   volatile bool recieve_new;
   volatile bool send_sucess;
 
-  void init(){
-    memset(&this->peer_info,0,sizeof(this->peer_info));
-    memcpy(this->peer_info.peer_addr,this->receiver_address,6);
-    this->peer_info.channel = 0;
-    this->peer_info.encrypt = false;
+  bool init(){
+    if(this->address_self){
+      memset(&this->peer_info,0,sizeof(this->peer_info));
+      memcpy(this->peer_info.peer_addr,this->address_self,6);
+      this->peer_info.channel = 0;
+      this->peer_info.encrypt = false;
+      return true;
+    }
+    return false;
   }
 };
 
-struct Empty{};
 
-template <typename InputData, typename OutData = Empty>
+template <typename InputData, typename OutData>
 class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
 private:
   OutData *reply;
@@ -198,7 +230,15 @@ public:
   bool begin() override{
     WiFi.mode(WIFI_STA);
     if(esp_now_init() != ESP_OK) return false;
-    this->config.init();
+    if(reply){
+      memset(&this->config.peer_info,0,sizeof(this->config.peer_info));
+      memcpy(this->config.peer_info.peer_addr,this->config.address_self,6);
+      this->peer_info.channel = 0;
+      this->peer_info.encrypt = false;
+
+    }
+
+    if(this->config.init()) return false;
     if(esp_now_add_peer(&this->config.peer_info) != ESP_OK) return false;
 
     _instance = this;
@@ -217,7 +257,7 @@ public:
   
   bool send(){
     if(reply){
-      esp_now_send(this->config.rimocon_address, (uint8_t*)&this->reply, sizeof(OutData));
+      esp_now_send(this->config.address_rimocon, (uint8_t*)&this->reply, sizeof(OutData));
       return true; // it does't mean it could send data successfuly...
     }
     return false;
