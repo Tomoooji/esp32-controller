@@ -1,0 +1,109 @@
+#pragma once
+#include <Arduino.h>
+#include <esp_now.h>
+#include <WiFi.h>
+#include "ESP32_Controller.h"
+
+
+/*
+struct InputData{
+  //uint32_t angle;//degree
+  //uint32_t dist;
+  //uint32_t turn;
+} __attribute__((packed));
+*/
+
+struct Config_ESPNOW{
+  volatile bool receive_new;
+};
+
+template <typename InputData>
+class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
+private:
+  inline static Controller_ESPNOW *_instance = nullptr;
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
+    if(_instance->config.receive_new || sizeof(InputData) != len) return;
+    memcpy(&_instance->command, data, sizeof(InputData));
+    _instance->config.receive_new = true;
+  }
+
+public:
+  using Controller<Config_ESPNOW,InputData>::Controller;
+
+  bool begin() override{
+    WiFi.mode(WIFI_STA);
+    if(esp_now_init() != ESP_OK) return false;
+
+    _instance = this;
+    esp_now_register_recv_cb(static_recv_cb);
+    return true;
+  
+    }  
+
+  bool update() override{
+    if(this->config.receive_new){
+      this->config.receive_new = false;
+      return true;
+    }
+    return false;
+  }
+};
+
+/////////
+
+struct Config_ESPNOW_Response{
+  const uint8_t* address_rimocon = nullptr;
+  volatile bool recieve_new;
+  volatile bool send_success;
+};
+
+template <typename InputData, typename OutData>
+class Controller_ESPNOW_Response :public Controller<Config_ESPNOW_Response,InputData>{
+private:
+  OutData *response;
+  inline static Controller_ESPNOW_Response *_instance = nullptr;
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
+    if(_instance->config->receive_new || sizeof(InputData) != len) return;
+    memcpy(&_instance->command, data, sizeof(InputData));
+    _instance->config->receive_new = true;
+  }
+  
+  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
+    _instance->config->send_success = (flag == ESP_NOW_SEND_SUCCESS);
+  }
+
+public:
+  Controller_ESPNOW_Response::Controller_ESPNOW_Response(ConfigData* config, InputData* input, OutData* output);
+  
+  bool begin() override{
+    WiFi.mode(WIFI_STA);
+    if(esp_now_init() != ESP_OK) return false;
+      
+    esp_now_peer_info_t peer_info;
+    memset(&peer_info,0,sizeof(peer_info));
+    memcpy(peer_info.peer_addr,this->config->address_rimocon,6);
+    peer_info.channel = 0;
+    peer_info.encrypt = false;
+    if(esp_now_add_peer(&peer_info) != ESP_OK) return false;
+    
+    _instance = this;
+    esp_now_register_recv_cb(static_recv_cb);
+    esp_now_register_send_cb(static_send_cb);
+    return true;
+  
+    }
+  
+  bool update() override{
+    if(this->config.receive_new){
+      this->config.receive_new = false;
+      return true;
+    }
+    return false;
+  }
+
+  void send(){
+    esp_now_send(this->config->address_rimocon, (uint8_t*)&this->reply, sizeof(OutData));
+  }
+};
+
+
