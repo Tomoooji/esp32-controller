@@ -146,7 +146,6 @@ public:
 
 ///////////////////////////
 
-///*
 #include <esp_now.h>
 #include <WiFi.h>
 
@@ -166,7 +165,6 @@ template <typename InputData>
 class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
 private:
   inline static Controller_ESPNOW *_instance = nullptr;
-
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->command, data, sizeof(InputData));
@@ -183,36 +181,27 @@ public:
     return true;
   }
   bool update() override{
-    
+    if(this->config.receive_new){
+      ...
+    }
+    this->config.receive_new = false;
   }
-
 };
 
+/////////
+
 struct Config_ESPNOW_r{
-  esp_now_peer_info_t peer_info;
   const uint8_t* address_rimocon = nullptr;
   volatile bool recieve_new;
   volatile bool send_sucess;
-
-  bool init(){
-    if(this->address_self){
-      memset(&this->peer_info,0,sizeof(this->peer_info));
-      memcpy(this->peer_info.peer_addr,this->address_self,6);
-      this->peer_info.channel = 0;
-      this->peer_info.encrypt = false;
-      return true;
-    }
-    return false;
-  }
 };
 
 
 template <typename InputData, typename OutData>
-class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
+class Controller_ESPNOW_r :public Controller<Config_ESPNOW_r,InputData>{
 private:
   OutData *reply;
   inline static Controller_ESPNOW *_instance = nullptr;
-  
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->command, data, sizeof(InputData));
@@ -224,25 +213,22 @@ private:
   }
 
 public:
-  Controller_ESPNOW::Controller_ESPNOW(ConfigData* config, InputData* input, OutData* output = nullptr):
+  Controller_ESPNOW_r::Controller_ESPNOW_r(ConfigData* config, InputData* input, OutData* output):
     config(config),command(input),reply(output){}
   
   bool begin() override{
     WiFi.mode(WIFI_STA);
     if(esp_now_init() != ESP_OK) return false;
-    if(reply){
-      memset(&this->config.peer_info,0,sizeof(this->config.peer_info));
-      memcpy(this->config.peer_info.peer_addr,this->config.address_self,6);
-      this->peer_info.channel = 0;
-      this->peer_info.encrypt = false;
-
-    }
-
-    if(this->config.init()) return false;
-    if(esp_now_add_peer(&this->config.peer_info) != ESP_OK) return false;
+    
+    esp_now_peer_info_t peer_info;
+    memset(&this->peer_info,0,sizeof(this->peer_info));
+    memcpy(this->peer_info.peer_addr,this->config.address_rimocon,6);
+    this->peer_info.channel = 0;
+    this->peer_info.encrypt = false;
+    if(esp_now_add_peer(&this->peer_info) != ESP_OK) return false;
 
     _instance = this;
-    if(reply) esp_now_register_send_cb(static_send_cb);
+    esp_now_register_send_cb(static_send_cb);
     esp_now_register_recv_cb(static_recv_cb);
 
     return true;
@@ -250,81 +236,15 @@ public:
   
   bool update() override{
     if(this->config.receive_new){
-
+      ...
     }
     this->config.receive_new = false;
   }
   
-  bool send(){
-    if(reply){
-      esp_now_send(this->config.address_rimocon, (uint8_t*)&this->reply, sizeof(OutData));
-      return true; // it does't mean it could send data successfuly...
-    }
-    return false;
-  }
-
-
-};
-
-
-
-
-
-
-template <typename DATATYPE>
-class ESPnowRimocon{
-  esp_now_peer_info_t _peer_info;
-  const uint8_t* receiver_address;
-  inline static ESPnowRimocon *_instance = nullptr;
- public:
-  volatile bool success_send;
-  DATATYPE sending;
-  volatile bool receive_new;
-  DATATYPE received;
-
-  ESPnowRimocon(const uint8_t* address = nullptr):receiver_address(address){}
-  
-  bool init(const uint8_t* address = nullptr){
-    // recomend making bool begin(); and call this from childe class
-    WiFi.mode(WIFI_STA);
-    if(esp_now_init() != ESP_OK) return false;
-    if(address != nullptr) this->receiver_address = address;
-    if(this->receiver_address != nullptr){
-      memset(&this->_peer_info, 0, sizeof(this->_peer_info));
-      memcpy(this->_peer_info.peer_addr, this->receiver_address, 6);
-      this->_peer_info.channel = 0; // よくわからんがチャンネルを自動追従するそうな
-      this->_peer_info.encrypt = false; // 暗号化有無
-      if(esp_now_add_peer(&this->_peer_info) != ESP_OK){
-        //Serial.println("failed peering");
-        return false;
-      }
-    }
-    _instance = this;
-    esp_now_register_send_cb(static_send_cb);
-    esp_now_register_recv_cb(static_recv_cb);
-    return true;
-  }
-
-  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
-    _instance->success_send = (flag == ESP_NOW_SEND_SUCCESS);
-  }
-
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
-    if(_instance->receive_new || sizeof(_instance->received) != len)return;
-    memcpy(&_instance->received, data, sizeof(_instance->received));
-    _instance->receive_new = true;
-  }
-
   void send(){
-    esp_now_send(this->receiver_address, (uint8_t*)&this->sending, sizeof(this->sending));
+    esp_now_send(this->config.address_rimocon, (uint8_t*)&this->reply, sizeof(OutData));
   }
-
-  virtual bool begin(const uint8_t* address = nullptr){
-    return this->init(address);
-  }
-  virtual void update(){}
 
 };
 
 
-*/
