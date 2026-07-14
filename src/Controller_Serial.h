@@ -28,7 +28,7 @@ public:
   bool begin() override{
     this->SER.begin(this->config->baudrate, SERIAL_8N1, this->config->Rx, this->config->Tx);
     // 8ビット、パリティなし、ストップビット1（8N1）
-    return this->SER();
+    return this->SER;
   }
 
   bool update() override{

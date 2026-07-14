@@ -34,7 +34,7 @@ public:
     // 構造体のサイズ以上のデータがバッファに届いているかチェック
     if (availableBytes >= sizeof(InputData)) {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&command);
+      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&this->command);
       for (size_t i = 0; i < sizeof(InputData); i++) {
         bytePtr[i] = Wire.read();
       }

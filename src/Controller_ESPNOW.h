@@ -22,9 +22,9 @@ class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
 private:
   inline static Controller_ESPNOW *_instance = nullptr;
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
-    if(_instance->config.receive_new || sizeof(InputData) != len) return;
+    if(_instance->config->receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->command, data, sizeof(InputData));
-    _instance->config.receive_new = true;
+    _instance->config->receive_new = true;
   }
 
 public:
@@ -41,8 +41,8 @@ public:
     }  
 
   bool update() override{
-    if(this->config.receive_new){
-      this->config.receive_new = false;
+    if(this->config->receive_new){
+      this->config->receive_new = false;
       return true;
     }
     return false;
@@ -53,7 +53,7 @@ public:
 
 struct Config_ESPNOW_Response{
   const uint8_t* address_rimocon = nullptr;
-  volatile bool recieve_new;
+  volatile bool receive_new;
   volatile bool send_success;
 };
 
@@ -73,7 +73,8 @@ private:
   }
 
 public:
-  Controller_ESPNOW_Response::Controller_ESPNOW_Response(ConfigData* config, InputData* input, OutData* output);
+  Controller_ESPNOW_Response::Controller_ESPNOW_Response(ConfigData* config, InputData* input, OutData* output):
+  config(config), command(input), response(output){}
   
   bool begin() override{
     WiFi.mode(WIFI_STA);
@@ -94,15 +95,15 @@ public:
     }
   
   bool update() override{
-    if(this->config.receive_new){
-      this->config.receive_new = false;
+    if(this->config->receive_new){
+      this->config->receive_new = false;
       return true;
     }
     return false;
   }
 
   void send(){
-    esp_now_send(this->config->address_rimocon, (uint8_t*)&this->reply, sizeof(OutData));
+    esp_now_send(this->config->address_rimocon, (uint8_t*)&this->response, sizeof(OutData));
   }
 };
 
