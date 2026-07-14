@@ -18,6 +18,13 @@ public:
 
 #include <PS4Controller.h>
 
+/*
+struct Input_PS4{
+  void apply();
+};
+*/
+
+
 struct Config_PS4{
   const char* mac = nullptr;
 };
@@ -26,17 +33,8 @@ template <typename InputData>
 class Controller_PS4 :public Controller<Config_PS4,InputData>{
 public:
   using Controller<Config_PS4,InputData>::Controller;
-  bool begin() override{
-    // macアドレスはconfigdataの方に書く
-    return PS4.begin(this->config.mac);
-  }
-  bool update() override{
-    if(PS4.isConnected()){
-
-      return true;
-    }
-    return false;
-  }
+  bool begin() override;
+  bool update() override;
 };
 
 ///////////////////////////////////////////
@@ -64,19 +62,8 @@ public:
   Controller_Serial(HardwareSerial& serial, ConfigData* config, InputData* input):
     SER(serial),config(config),command(input){}
 
-  bool begin() override{
-    this->SER.begin(this->config.baudrate, SERIAL_8N1, Rx, Tx);
-    // 8ビット、パリティなし、ストップビット1（8N1）
-  }
-
-  bool update() override{
-    if(this->SER.available()){
-      this->SER.readBytes((uint8_t*)&this->input, sizeof(InputData));
-      //this->SER.write((uint8_t*)&this->input, sizeof(InputData)); //feedback echo
-      return true;
-    }
-    return false;
-  }
+  bool begin() override;
+  bool update() override;
 };
 
 ///////////////////////////
@@ -105,29 +92,9 @@ public:
   using Controller<Config_I2C,InputData>::Controller;
   //memset(&_currentCmd, 0, sizeof(RobotCommand)); // 構造体をゼロクリア
 
-  bool begin() override{
-    Wire.begin(this->config.adress, this->config.sda, this->config.scl, this->config.freqency);
-  }
+  bool begin() override;
 
-  bool update() override{
-    int availableBytes = Wire.available();
-        
-    // 構造体のサイズ以上のデータがバッファに届いているかチェック
-    if (availableBytes >= sizeof(InputData)) {
-      // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&command);
-      for (size_t i = 0; i < sizeof(InputData); i++) {
-        bytePtr[i] = Wire.read();
-      }
-      
-      // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
-      while (Wire.available() > 0) {
-        Wire.read();
-      }
-      retirn true;
-    }
-    retirn false;
-  }
+  bool update() override;
 };
 
 ///////////////////////////
@@ -173,19 +140,8 @@ private:
 
 public:
   using Controller<Config_ESPNOW,InputData>::Controller;
-  bool begin() override{
-    WiFi.mode(WIFI_STA);
-    if(esp_now_init() != ESP_OK) return false;
-    _instance = this;
-    esp_now_register_recv_cb(static_recv_cb);
-    return true;
-  }
-  bool update() override{
-    if(this->config.receive_new){
-      ...
-    }
-    this->config.receive_new = false;
-  }
+  bool begin() override;
+  bool update() override;
 };
 
 /////////
@@ -195,7 +151,6 @@ struct Config_ESPNOW_r{
   volatile bool recieve_new;
   volatile bool send_sucess;
 };
-
 
 template <typename InputData, typename OutData>
 class Controller_ESPNOW_r :public Controller<Config_ESPNOW_r,InputData>{
@@ -213,38 +168,11 @@ private:
   }
 
 public:
-  Controller_ESPNOW_r::Controller_ESPNOW_r(ConfigData* config, InputData* input, OutData* output):
-    config(config),command(input),reply(output){}
+  Controller_ESPNOW_r::Controller_ESPNOW_r(ConfigData* config, InputData* input, OutData* output);
   
-  bool begin() override{
-    WiFi.mode(WIFI_STA);
-    if(esp_now_init() != ESP_OK) return false;
-    
-    esp_now_peer_info_t peer_info;
-    memset(&this->peer_info,0,sizeof(this->peer_info));
-    memcpy(this->peer_info.peer_addr,this->config.address_rimocon,6);
-    this->peer_info.channel = 0;
-    this->peer_info.encrypt = false;
-    if(esp_now_add_peer(&this->peer_info) != ESP_OK) return false;
-
-    _instance = this;
-    esp_now_register_send_cb(static_send_cb);
-    esp_now_register_recv_cb(static_recv_cb);
-
-    return true;
-  }
-  
-  bool update() override{
-    if(this->config.receive_new){
-      ...
-    }
-    this->config.receive_new = false;
-  }
-  
-  void send(){
-    esp_now_send(this->config.address_rimocon, (uint8_t*)&this->reply, sizeof(OutData));
-  }
-
+  bool begin() override;  
+  bool update() override;  
+  void send();
 };
 
 
