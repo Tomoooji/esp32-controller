@@ -146,27 +146,90 @@ public:
 
 ///////////////////////////
 
-/*
+///*
 #include <esp_now.h>
 #include <WiFi.h>
 
-struct ConfigData{
-  esp_now_peer_info_t _peer_info;
-  const uint8_t* receiver_address;
-  //inline static ESPnowRimocon *_instance = nullptr;
+/*
+struct InputData{
+  //uint32_t angle;//degree
+  //uint32_t dist;
+  //uint32_t turn;
+} __attribute__((packed));
+*/
 
+struct Config_ESPNOW{
+  esp_now_peer_info_t peer_info;
+  const uint8_t* self_address = nullptr;
+  const uint8_t* rimocon_address = nullptr;
+  volatile bool recieve_new;
+  volatile bool send_sucess;
+
+  void init(){
+    memset(&this->peer_info,0,sizeof(this->peer_info));
+    memcpy(this->peer_info.peer_addr,this->receiver_address,6);
+    this->peer_info.channel = 0;
+    this->peer_info.encrypt = false;
+  }
 };
 
+struct Empty{};
 
-class Controller_ESPNOW :public Controller{
+template <typename InputData, typename OutData = Empty>
+class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
 private:
+  OutData *reply;
+  inline static Controller_ESPNOW *_instance = nullptr;
+  
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
+    if(_instance->config.receive_new || sizeof(InputData) != len) return;
+    memcpy(&_instance->command, data, sizeof(InputData));
+    _instance->config.receive_new = true;
+  }
+  
+  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
+    _instance->config.send_success = (flag == ESP_NOW_SEND_SUCCESS);
+  }
+
 public:
-  using Controller::Controller;
-  bool begin(){
+  Controller_ESPNOW::Controller_ESPNOW(ConfigData* config, InputData* input, OutData* output = nullptr):
+    config(config),command(input),reply(output){}
+  
+  bool begin() override{
+    WiFi.mode(WIFI_STA);
+    if(esp_now_init() != ESP_OK) return false;
+    this->config.init();
+    if(esp_now_add_peer(&this->config.peer_info) != ESP_OK) return false;
+
+    _instance = this;
+    if(reply) esp_now_register_send_cb(static_send_cb);
+    esp_now_register_recv_cb(static_recv_cb);
+
+    return true;
   }
-  bool update(){
+  
+  bool update() override{
+    if(this->config.receive_new){
+
+    }
+    this->config.receive_new = false;
   }
+  
+  bool send(){
+    if(reply){
+      esp_now_send(this->config.rimocon_address, (uint8_t*)&this->reply, sizeof(OutData));
+      return true; // it does't mean it could send data successfuly...
+    }
+    return false;
+  }
+
+
 };
+
+
+
+
+
 
 template <typename DATATYPE>
 class ESPnowRimocon{
