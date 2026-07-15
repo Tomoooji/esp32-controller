@@ -21,7 +21,7 @@ private:
   HardwareSerial& SER;
 
 public:
-  Controller_Serial(HardwareSerial& serial, ConfigData& config, InputData& input):
+  Controller_Serial(HardwareSerial& serial, Config_Serial& config, InputData& input):
     SER(serial),config(config),command(input){}
 
   bool begin() override{

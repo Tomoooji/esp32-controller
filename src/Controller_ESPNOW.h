@@ -72,7 +72,7 @@ private:
   }
 
 public:
-  Controller_ESPNOW_Response::Controller_ESPNOW_Response(ConfigData& config, InputData& input, OutData& output):
+  Controller_ESPNOW_Response(Config_ESPNOW_Response& config, InputData& input, OutData& output):
   config(config), command(input), response(output){}
   
   bool begin() override{
