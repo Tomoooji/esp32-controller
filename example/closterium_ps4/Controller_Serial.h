@@ -16,16 +16,16 @@ struct Config_Serial{
 };
 
 template <typename InputData>
-class Controller_Serial : public Controller<Config_Serial,InputData>{
+class Controller_Serial : public Controller_Base<Config_Serial,InputData>{
 private:
   HardwareSerial& SER;
 
 public:
-  Controller_Serial(HardwareSerial& serial, ConfigData& config, InputData& input):
+  Controller_Serial(HardwareSerial& serial, ConfigData* config, InputData* input):
     SER(serial),config(config),command(input){}
 
   bool begin() override{
-    this->SER.begin(this->config.baudrate, SERIAL_8N1, this->config.Rx, this->config.Tx);
+    this->SER.begin(this->config->baudrate, SERIAL_8N1, this->config->Rx, this->config->Tx);
     // 8ビット、パリティなし、ストップビット1（8N1）
     return this->SER;
   }
