@@ -10,7 +10,7 @@ struct WheelCommand{
   }
 } input;
 
-Config_PS4 config = {"00:00:00:00:00:00"};
+Config_PS4 config = {.mac="00:00:00:00:00:00"};
 
 Controller<WheelCommand> ps4(config,input);
 
