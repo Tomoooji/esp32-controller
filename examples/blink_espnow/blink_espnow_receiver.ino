@@ -4,7 +4,7 @@
 struct BlinkCommand{
   bool is_on;
   int power;
-} command;
+} __attribute__((packed)) command;
 Config_ESPNOW config;
 Controller<BlinkCommand> esprimocon(config,command);
 
