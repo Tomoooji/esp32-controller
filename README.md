@@ -1,14 +1,20 @@
 # ESP32 Controller
 ESP32を有線/無線で操作する汎用コントローラークラス
 ## ファイル構成
-
-
-
-ブラウザでこのページを開いて、緑の四角から[Download ZIP]を選択してzipファイルをダウンロード  
-ArduinoIDEの上部メニューから [スケッチ] ＞ [ライブラリをインクルード] ＞ [.ZIP形式のライブラリをインストール...] をクリック。  
-ダウンロードしたZIPファイル（解凍しなくてOK）を選択し、[開く] を押す。  
-画面下に「ライブラリがインストールされました」と出たら成功！  
-(⬇️ArduinoIDEやESP32のボード、外部ライブラリのバージョンに注意)  
+```
+closteriumesp32-controller/
+├─ example/
+│  └─ closterium_ps4/
+│     └─ closterium_ps4.ino     # ロッカーボギー機構がついた6輪ロボットをPS4コントローラーで動かすサンプル
+├─ src/
+│  ├─ ESP32_Controller.h        # メインのヘッダファイル  ここから各ヘッダに分岐
+│  ├─ Controller_BaseClass.h    # 基底クラスのヘッダファイル  直接使うことはない
+│  ├─ Controller_PS4.h          # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
+│  ├─ Controller_Serial.h       # シリアル通信(UART)で通信するクラスのヘッダファイル
+│  ├─ Controller_I2C.h          # I2C通信で通信するクラスのヘッダファイル
+│  └─ Controller_ESPNOW.h       # ESP-NOWで通信するクラスのヘッダファイル  双方向verもある。
+└─ README.md
+```
 
 ## 依存関係
 ArduinoIDEのESP32を想定しています。  
@@ -18,6 +24,13 @@ ArduinoIDEのESP32を想定しています。
 各外部ライブラリは適宜ライブラリマネージャーでインストールしてください。  
 - PS4Controller ver.
 - (RemoteXY ver. )
+
+## ライブラリの入れ方
+step1. ブラウザでこのページを開いて、緑の四角から[Download ZIP]を選択してzipファイルをダウンロード  
+step2. ArduinoIDEの上部メニューから [スケッチ] ＞ [ライブラリをインクルード] ＞ [.ZIP形式のライブラリをインストール...] をクリック。  
+step3. ダウンロードしたZIPファイル（解凍しなくてOK）を選択し、[開く] を押す。  
+画面下に「ライブラリがインストールされました」と出たら成功！  
+(ArduinoIDEやESP32のボード、外部ライブラリのバージョンに注意)  
   
 ## 使い方
 step1. あらかじめ``#define CONTROLLER_TYPE コントローラーの種類``を設定しておく  
