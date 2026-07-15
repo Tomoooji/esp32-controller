@@ -1,7 +1,6 @@
 #pragma once
-#include <Arduino.h>
+#include "Controller_BaseClass.h"
 #include <PS4Controller.h>
-#include "ESP32_Controller.h"
 
 /*
 struct Input_PS4{

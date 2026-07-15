@@ -1,32 +1,32 @@
 #pragma once
-#include <Arduino.h>
+#include "Controller_BaseClass.h"
 
-template <typename ConfigData, typename InputData>
-class Controller{
-protected:
-  ConfigData *config;
-  InputData *command;
-public:
-  explicit Controller(ConfigData* config, InputData* input):config(config),command(input){}
-  virtual bool begin() = 0;
-  virtual bool update() = 0;
-  const InputData& get_input(){return this->command;}
-  ConfigData& get_config(){return this->config;}
-};
+#ifndef CONTROLLER_TYPE
 
+#elif CONTROLLER_TYPE == CONTROLLER_PS4
+  #include "Controller_PS4.h"
+  using Controller = Controller_PS4;
 
-///////////////////////////
+#elif CONTROLLER_TYPE == CONTROLLER_SERIAL
+  #include "Controller_Serial.h"
+  using Controller = Controller_Serial;
+  //using Controller_Response = Controller_Serial_Response;
+
+#elif CONTROLLER_TYPE == CONTROLLER_I2C
+  #include "Controller_I2C.h"
+  using Controller = Controller_I2C;
+  //using Controller_Response = Controller_I2C_Response;
+
+#elif CONTROLLER_TYPE == CONTROLLER_ESPNOW
+  #include "Controller_ESPNOW.h"
+  using Controller = Controller_ESPNOW;
+  using Controller_Response = Controller_ESPNOW_Response;
+
 /*
-struct Config_RemoteXY{};
-
-class Controller_RemoteXY : public Controller<Config_RemoteXY,...>{
-public:
-  bool begin() override{
-    RemoteXY_Init();
-  }
-  bool updata() override{
-    RemoteXYEngine.handler();
-  }
-};
+#elif CONTROLLER_TYPE == CONTROLLER_REMOTEXY
+#include "Controller_RemoteXY.h"
+using Controller = Controller_RemoteXY;
 */
-///////////////////////////
+
+#endif
+

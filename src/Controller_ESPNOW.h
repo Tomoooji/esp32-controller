@@ -1,8 +1,7 @@
 #pragma once
-#include <Arduino.h>
+#include "Controller_BaseClass.h"
 #include <esp_now.h>
 #include <WiFi.h>
-#include "ESP32_Controller.h"
 
 
 /*

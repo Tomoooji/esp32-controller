@@ -1,6 +1,5 @@
 #pragma once
-#include <Arduino.h>
-#include "ESP32_Controller.h"
+#include "Controller_BaseClass.h"
 
 /*
 struct InputData{
