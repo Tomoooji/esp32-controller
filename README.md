@@ -3,7 +3,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 ## ファイル構成
 ```
 closteriumesp32-controller/
-├─ example/
+├─ examples/
 │  └─ closterium_ps4/
 │     └─ closterium_ps4.ino     # ロッカーボギー機構がついた6輪ロボットをPS4コントローラーで動かすサンプル
 ├─ src/
@@ -13,6 +13,7 @@ closteriumesp32-controller/
 │  ├─ Controller_Serial.h       # シリアル通信(UART)で通信するクラスのヘッダファイル
 │  ├─ Controller_I2C.h          # I2C通信で通信するクラスのヘッダファイル
 │  └─ Controller_ESPNOW.h       # ESP-NOWで通信するクラスのヘッダファイル  双方向verもある。
+├─ library.properties
 ├─ LICENSE
 └─ README.md
 ```
@@ -52,7 +53,7 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 
 ---
 作成者:Tomoooji  
-最終更新日:2026/07/15  
+最終更新:2026/07/15 - ver.1.0.0  
 
 see also:
 - [Planaria Renewal](https://github.com/Tomoooji/Planaria_renewal/blob/example/tomoooji/planaria_renewal/Controller_PS4.h)
