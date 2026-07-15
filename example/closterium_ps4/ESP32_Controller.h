@@ -5,32 +5,27 @@
 
 #elif CONTROLLER_TYPE == CONTROLLER_PS4
   #include "Controller_PS4.h"
-  template <typename InputData>
-  using Controller = Controller_PS4<InputData>;
+  using Controller = Controller_PS4;
 
 #elif CONTROLLER_TYPE == CONTROLLER_SERIAL
   #include "Controller_Serial.h"
-  template <typename InputData>
-  using Controller = Controller_Serial<InputData>;
-  //using Controller_Response = Controller_Serial_Response<InputData>;
+  using Controller = Controller_Serial;
+  //using Controller_Response = Controller_Serial_Response;
 
 #elif CONTROLLER_TYPE == CONTROLLER_I2C
   #include "Controller_I2C.h"
-  template <typename InputData>
-  using Controller = Controller_I2C<InputData>;
-  //using Controller_Response = Controller_I2C_Response<InputData>;
+  using Controller = Controller_I2C;
+  //using Controller_Response = Controller_I2C_Response;
 
 #elif CONTROLLER_TYPE == CONTROLLER_ESPNOW
   #include "Controller_ESPNOW.h"
-  template <typename InputData>
-  using Controller = Controller_ESPNOW<InputData>;
-  using Controller_Response = Controller_ESPNOW_Response<InputData>;
+  using Controller = Controller_ESPNOW;
+  using Controller_Response = Controller_ESPNOW_Response;
 
 /*
 #elif CONTROLLER_TYPE == CONTROLLER_REMOTEXY
-  #include "Controller_RemoteXY.h"
-  template <typename InputData>
-  using Controller = Controller_RemoteXY<InputData>;
+#include "Controller_RemoteXY.h"
+using Controller = Controller_RemoteXY;
 */
 
 #endif

@@ -18,14 +18,14 @@ struct Config_I2C{
 };
 
 template <typename InputData>
-class Controller_I2C : public Controller_Base<Config_I2C,InputData>{
+class Controller_I2C : public Controller<Config_I2C,InputData>{
 private:
 public:
-  using Controller_Base<Config_I2C,InputData>::Controller_Base;
+  using Controller<Config_I2C,InputData>::Controller;
   //memset(&_currentCmd, 0, sizeof(RobotCommand)); // 構造体をゼロクリア
 
   bool begin() override{
-    return Wire.begin(this->config->address, this->config->sda, this->config->scl, this->config->frequency);
+    return Wire.begin(this->config.address, this->config.sda, this->config.scl, this->config.frequency);
   }
 
   bool update() override{
