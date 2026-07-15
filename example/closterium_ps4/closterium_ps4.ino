@@ -12,7 +12,7 @@ struct WheelCommand{
 
 Config_PS4 config = {"00:00:00:00:00:00"};
 
-Controller<WheelCommand> ps4(&config,&input);
+Controller<WheelCommand> ps4(config,input);
 
 void setup(){}
 void loop(){}

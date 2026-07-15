@@ -17,7 +17,7 @@ struct Config_ESPNOW{
 };
 
 template <typename InputData>
-class Controller_ESPNOW :public Controller<Config_ESPNOW,InputData>{
+class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData>{
 private:
   inline static Controller_ESPNOW *_instance = nullptr;
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
@@ -27,7 +27,7 @@ private:
   }
 
 public:
-  using Controller<Config_ESPNOW,InputData>::Controller;
+  using Controller_Base<Config_ESPNOW,InputData>::Controller_Base;
 
   bool begin() override{
     WiFi.mode(WIFI_STA);
@@ -57,7 +57,7 @@ struct Config_ESPNOW_Response{
 };
 
 template <typename InputData, typename OutData>
-class Controller_ESPNOW_Response :public Controller<Config_ESPNOW_Response,InputData>{
+class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData>{
 private:
   OutData &response;
   inline static Controller_ESPNOW_Response *_instance = nullptr;

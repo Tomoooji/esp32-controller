@@ -2,12 +2,12 @@
 #include <Arduino.h>
 
 template <typename ConfigData, typename InputData>
-class Controller{
+class Controller_Base{
 protected:
   ConfigData &config;
   InputData &command;
 public:
-  explicit Controller(ConfigData& config, InputData& input):config(config),command(input){}
+  explicit Controller_Base(ConfigData& config, InputData& input):config(config),command(input){}
   virtual bool begin() = 0;
   virtual bool update() = 0;
   const InputData& get_input(){return this->command;}
@@ -19,7 +19,7 @@ public:
 /*
 struct Config_RemoteXY{};
 
-class Controller_RemoteXY : public Controller<Config_RemoteXY,...>{
+class Controller_RemoteXY : public Controller_Base<Config_RemoteXY,...>{
 public:
   bool begin() override{
     RemoteXY_Init();

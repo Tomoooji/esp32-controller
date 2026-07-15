@@ -14,9 +14,9 @@ struct Config_PS4{
 };
 
 template <typename InputData>
-class Controller_PS4 :public Controller<Config_PS4,InputData>{
+class Controller_PS4 :public Controller_Base<Config_PS4,InputData>{
 public:
-  using Controller<Config_PS4,InputData>::Controller;
+  using Controller_Base<Config_PS4,InputData>::Controller_Base;
   bool begin() override{
     return PS4.begin(this->config.mac);
   }

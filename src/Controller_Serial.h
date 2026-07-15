@@ -16,7 +16,7 @@ struct Config_Serial{
 };
 
 template <typename InputData>
-class Controller_Serial : public Controller<Config_Serial,InputData>{
+class Controller_Serial : public Controller_Base<Config_Serial,InputData>{
 private:
   HardwareSerial& SER;
 
