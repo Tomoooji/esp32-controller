@@ -64,15 +64,11 @@ public:
   }
 
   bool update() override{
-    int availableBytes = Wire.available();
     // 構造体のサイズ以上のデータがバッファに届いているかチェック
-    if (availableBytes >= sizeof(InputData)) {
+    if (Wire.available() >= sizeof(InputData)) {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&this->command);
-      for (size_t i = 0; i < sizeof(InputData); i++) {
-        bytePtr[i] = Wire.read();
-      }
-      
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
+
       // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
       while (Wire.available() > 0) {
         Wire.read();
@@ -81,7 +77,7 @@ public:
     }
     return false;
   }
-  
+
   bool send(){
     // 送信処理の開始
     Wire.beginTransmission(this->config.address);

@@ -31,8 +31,11 @@ public:
   }
 
   bool update() override{
-    if(this->SER.available()){
-      this->SER.readBytes((uint8_t*)&this->command, sizeof(InputData));
+    if(this->SER.available() >= sizeof(InputData)){
+      this->SER.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
+      while (this->SER.available() > 0) {
+        this->SER.read();
+      }
       return true;
     }
     return false;
@@ -50,7 +53,7 @@ public:
     SER(serial),config(config),command(input),response{output}{}
 
   bool send(){
-    this->SER.write((uint8_t*)&this->response, sizeof(OutputData));
+    this->SER.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
     return true;
   }
 };
@@ -87,3 +90,7 @@ public:
 };
 
 */
+
+
+///
+

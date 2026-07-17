@@ -102,7 +102,7 @@ public:
   }
 
   void send(){
-    esp_now_send(this->config.address_rimocon, (uint8_t*)&this->response, sizeof(OutData));
+    esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->response), sizeof(OutData));
   }
 };
 
