@@ -1,0 +1,28 @@
+{
+    "port":"COM3",
+    "seiralnumber":"0001", "hid":"10C4", "pid":"EA60",
+    "baudrate":115200,
+    "timeout":0,
+
+    "send_datatype":{
+        "angle":"i",
+        "dist":"i",
+        "turn":"i"
+    },
+    "send_data":{
+        "angle":0,
+        "dist": 0,
+        "turn": 0
+    },
+    
+    "receive_datatype":{
+        "angle":"i",
+        "dist":"i",
+        "turn":"i"
+    },
+    "receive_data":{
+        "angle":0,
+        "dist":0,
+        "turn":0
+    }
+}

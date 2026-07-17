@@ -59,7 +59,7 @@ struct Config_ESPNOW_Response{
 template <typename InputData, typename OutData>
 class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData>{
 private:
-  OutData &response;
+  OutData& response;
   inline static Controller_ESPNOW_Response *_instance = nullptr;
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance->config.receive_new || sizeof(InputData) != len) return;

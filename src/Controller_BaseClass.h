@@ -4,8 +4,8 @@
 template <typename ConfigData, typename InputData>
 class Controller_Base{
 protected:
-  ConfigData &config;
-  InputData &command;
+  ConfigData& config;
+  InputData& command;
 public:
   explicit Controller_Base(ConfigData& config, InputData& input):config(config),command(input){}
   virtual bool begin() = 0;
