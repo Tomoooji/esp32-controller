@@ -1,3 +1,14 @@
+/**
+ * @file Controller_I2C.h
+ * @brief I2Cで構造体をやりとりするライブラリ
+ * 
+ * @author Tomoooji
+ * @version 0.1
+ * @date 2026-07-18
+ * @copyright Copyright (c) 2026
+ * 
+ * @note 基本的に機体側はMasterとして運用、Slaveは一旦放置！
+ */
 #pragma once
 #include "Controller_BaseClass.h"
 #include <Wire.h>
@@ -10,6 +21,7 @@ struct InputData{
 } __attribute__((packed));
 */
 
+/**　@brief I2C通信用の設定　*/
 struct Config_I2C_Master{
   uint8_t address_slave; //初期値は 0x2A など
   int sda = -1;
@@ -17,20 +29,37 @@ struct Config_I2C_Master{
   uint32_t frequency = 0;
 };
 
-// ============================================
-// マスター用（機体側がマスター）
-// ============================================
+/**
+ * @brief 
+ * @details 
+ * 
+ * @tparam InputData 
+ */
 template <typename InputData>
 class Controller_I2C_Master : public Controller_Base<Config_I2C_Master,InputData>{
 private:
 public:
   using Controller_Base<Config_I2C_Master,InputData>::Controller_Base;
 
+  /**
+   * @brief 
+   * @details 
+   * 
+   * @retval true 
+   * @retval false 
+   */
   bool begin() override{
     // マスター初期化（アドレス指定しない）
     return Wire.begin(this->config.sda, this->config.scl, this->config.frequency);
   }
 
+  /**
+   * @brief 
+   * @details 
+   * 
+   * @retval true 
+   * @retval false 
+   */
   bool update() override{
     // スレーブからデータを要求
     Wire.requestFrom(this->config.address_slave, (size_t)sizeof(InputData));
@@ -51,15 +80,37 @@ public:
 
 /////////////////
 
+/**
+ * @brief 
+ * @details 
+ * 
+ * @tparam InputData 
+ * @tparam OutputData 
+ */
 template <typename InputData, typename OutputData>
 class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData>{
 private:
   OutputData& response;
 
 public:
+  /**
+   * @brief Construct a new Controller_I2C_Master_Response object
+   * @details 
+   * 
+   * @param config 
+   * @param input 
+   * @param output 
+   */
   Controller_I2C_Master_Response(Config_I2C_Master& config, InputData& input, OutputData& output):
   Controller_I2C_Master<InputData>(config,input),response(output){}
 
+  /**
+   * @brief 
+   * @details 
+   * 
+   * @retval true 
+   * @retval false 
+   */
   bool send(){
     // マスターがスレーブへデータを送信
     Wire.beginTransmission(this->config.address);
