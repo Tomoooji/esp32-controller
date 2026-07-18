@@ -22,7 +22,7 @@ private:
 
 public:
   Controller_Serial(HardwareSerial& serial, Config_Serial& config, InputData& input):
-    Controller_Base<InputData>(config,input),SER(serial){}
+    Controller_Base<Config_Serial,InputData>(config,input),SER(serial){}
 
   bool begin() override{
     this->SER.begin(this->config.baudrate, SERIAL_8N1, this->config.Rx, this->config.Tx);
@@ -45,7 +45,7 @@ public:
 //////////
 
 template <typename InputData, typename OutputData>
-class Controller_Serial_Response : public Controller_Serial<Config_Serial,InputData>{
+class Controller_Serial_Response : public Controller_Serial<InputData>{
 private:
   OutputData& response;
 

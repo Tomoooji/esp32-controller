@@ -57,7 +57,7 @@ public:
 struct Config_ESPNOW_Response{
   const uint8_t* address_rimocon = nullptr;
   volatile bool receive_new = false;
-  volatile bool send_success false;
+  volatile bool send_success = false;
 };
 
 template <typename InputData, typename OutData>

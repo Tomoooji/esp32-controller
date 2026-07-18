@@ -19,7 +19,7 @@ struct Config_BluetoothSerial{
 // BluetoothSerial（受信のみ）
 // ============================================
 template <typename InputData>
-class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial, InputData>{
+class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData>{
 public:
   using Controller_Base<Config_BluetoothSerial,InputData>::Controller_Base;
 
@@ -45,12 +45,12 @@ public:
 // BluetoothSerial（双方向通信）
 // ============================================
 template <typename InputData, typename OutputData>
-class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<Config_BluetoothSerial, InputData>{
+class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData>{
 private:
   OutputData& response;
 
 public:
-  Controller_BluetoothSerial_Response(BluetoothSerial& bt, Config_BluetoothSerial& config, InputData& input, OutputData& output):
+  Controller_BluetoothSerial_Response(Config_BluetoothSerial& config, InputData& input, OutputData& output):
     Controller_BluetoothSerial<InputData>(config,input),response(output) {}
 
   bool send(){

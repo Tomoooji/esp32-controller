@@ -33,7 +33,7 @@ public:
 
   bool update() override{
     // スレーブからデータを要求
-    Wire.requestFrom(this->config.address, (size_t)sizeof(InputData));
+    Wire.requestFrom(this->config.address_slave, (size_t)sizeof(InputData));
     
     if (Wire.available() >= sizeof(InputData)) {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
