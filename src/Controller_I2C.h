@@ -37,7 +37,7 @@ public:
     
     if (Wire.available() >= sizeof(InputData)) {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
-      Wire.readByte(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
 
       // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
       while (Wire.available() > 0) {
@@ -103,7 +103,7 @@ private:
   static void static_recv_cb(int size){
     if(_instance == nullptr) return;
     if (size >= sizeof(InputData)) {
-      Wire.readByte(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
       while (Wire.available() > 0) {
         Wire.read();
       }
@@ -150,11 +150,7 @@ private:
   static void static_recv_cb(int size){
     if(_instance == nullptr) return;
     if (size >= sizeof(InputData)) {
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_instance->command);
-      for (int i = 0; i < sizeof(InputData); i++) {
-        bytePtr[i] = Wire.read();
-      }
-      // 残りのデータを捨てる
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
       while (Wire.available() > 0) {
         Wire.read();
       }
