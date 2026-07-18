@@ -12,7 +12,7 @@
 #ifdef ESP32
 #pragma once
 
-#include "Controller_BaseClass.h"
+#include "ESP32_Controller_BaseClass.h"
 #include <esp_now.h>
 #include <WiFi.h>
 

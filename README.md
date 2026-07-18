@@ -6,20 +6,20 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 esp32-controller/
 ├─ examples/
 │  ├─ blink_espnow/
-│  │  └─ blink_espnow_receiver.ino # ESP-NOW経由でLEDを付けたり消したりするサンプル
+│  │  └─ blink_espnow_receiver.ino  # ESP-NOW経由でLEDを付けたり消したりするサンプル
 │  └─ closterium_ps4/
-│     └─ closterium_ps4.ino     # ロッカーボギー機構がついた6輪ロボットをPS4コントローラーで動かすサンプル
+│     └─ closterium_ps4.ino         # ロッカーボギー機構がついた6輪ロボットをPS4コントローラーで動かすサンプル
 ├─ extras/
 │  └─ serial_rimocon_raspi/
-│     ├─ serial_rimocon.py      # Raspberry Piから構造体ベースのシリアル通信をするプログラム
-│     └─ ESP32.json             # 通信用設定ファイル
+│     ├─ serial_rimocon.py          # Raspberry Piから構造体ベースのシリアル通信をするプログラム
+│     └─ ESP32.json                 # 通信用設定ファイル
 ├─ src/
-│  ├─ Controller_BaseClass.h    # 基底クラスのヘッダファイル  直接使うことはない
-│  ├─ Controller_PS4.h          # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
-│  ├─ Controller_Serial.h       # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
-│  ├─ Controller_I2C.h          # I2C通信で通信するクラスのヘッダファイル　双方向verもある
-│  ├─ Controller_BluetoothSerial.h # Bluetooth Classicで通信するクラスのヘッダファイル　双方向verもある
-│  └─ Controller_ESPNOW.h       # ESP-NOWで通信するクラスのヘッダファイル  双方向verもある
+│  ├─ ESP32_Controller_BaseClass.h  # 基底クラスのヘッダファイル  直接使うことはない
+│  ├─ ESP32_Controller_PS4.h        # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
+│  ├─ ESP32_Controller_Serial.h     # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
+│  ├─ ESP32_Controller_I2C.h        # I2C通信で通信するクラスのヘッダファイル　双方向verもある
+│  ├─ ESP32_Controller_BluetoothSerial.h # Bluetooth Classicで通信するクラスのヘッダファイル　双方向verもある
+│  └─ ESP32_Controller_ESPNOW.h     # ESP-NOWで通信するクラスのヘッダファイル  双方向verもある
 ├─ library.properties
 ├─ LICENSE
 └─ README.md
