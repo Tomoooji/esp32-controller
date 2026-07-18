@@ -1,3 +1,15 @@
+/**
+ * @file ESP32_Controller.h
+ * @brief 
+ * 
+ * @author Tomoooji (https://github.com/Tomoooji)
+ * @version 0.1
+ * @date 2026-07-18
+ * @copyright Copyright (c) 2026
+ * 
+ * @note 
+ */
+
 #pragma once
 #include "Controller_BaseClass.h"
 
