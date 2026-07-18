@@ -54,8 +54,7 @@ public:
     Controller_BluetoothSerial<InputData>(config,input),response(output) {}
 
   bool send(){
-    size_t written = BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
-    return written == sizeof(OutputData);
+    return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 

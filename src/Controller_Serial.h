@@ -10,7 +10,7 @@ struct InputData{
 */
 
 struct Config_Serial{
-  int baudrate;
+  int baudrate = 115200;
   int Rx = -1;
   int Tx = -1;
 };
@@ -54,8 +54,7 @@ public:
     Controller_Serial<InputData>(serial,config,input),response{output}{}
 
   bool send(){
-    this->SER.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
-    return true;
+    return this->SER.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 

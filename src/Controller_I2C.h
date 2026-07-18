@@ -37,12 +37,7 @@ public:
     
     if (Wire.available() >= sizeof(InputData)) {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
-      //*
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&this->command);
-      for (size_t i = 0; i < sizeof(InputData); i++) {
-        bytePtr[i] = Wire.read();
-      }
-      /*Wire.readByte(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));*/
+      Wire.readByte(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
 
       // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
       while (Wire.available() > 0) {
@@ -73,8 +68,13 @@ public:
   }
 };
 
+
+
+
+
+
 // ============================================
-// スレーブ用（外部マスターからコマンド受信）
+// スレーブ用（外部マスターからコマンド受信）-> 基本使わない方針で
 // ============================================
 
 /*
@@ -95,19 +95,15 @@ struct Config_I2C_Slave{
 };
 
 
-template <typename InputData, typename ConfigDate = Config_I2C_Slave>
-class Controller_I2C_Slave : public Controller_Base<ConfigData,InputData>{
+template <typename InputData>
+class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData>{
 private:
   inline static Controller_I2C_Slave *_instance = nullptr;
   
   static void static_recv_cb(int size){
     if(_instance == nullptr) return;
     if (size >= sizeof(InputData)) {
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_instance->command);
-      for (int i = 0; i < sizeof(InputData); i++) {
-        bytePtr[i] = Wire.read();
-      }
-      // 残りのデータを捨てる
+      Wire.readByte(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
       while (Wire.available() > 0) {
         Wire.read();
       }
@@ -116,7 +112,7 @@ private:
   }
 
 public:
-  using Controller_Base<ConfigData,InputData>::Controller_Base;
+  using Controller_Base<Config_I2C_Slave,InputData>::Controller_Base;
 
   bool begin() override{
     // スレーブ初期化（アドレス指定）
@@ -146,27 +142,50 @@ struct Config_I2C_Slave_Response{
 };
 
 template <typename InputData, typename OutputData>
-class Controller_I2C_Slave_Response : public Controller_I2C_Slave<InputData,Config_I2C_Slave_Response>{
+class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response>{
 private:
   OutputData& response;
-  inline static Controller_I2C_Slave_Response *_instance = nullptr;//
-  
+  inline static Controller_I2C_Slave_Response *_instance = nullptr;
+
+  static void static_recv_cb(int size){
+    if(_instance == nullptr) return;
+    if (size >= sizeof(InputData)) {
+      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_instance->command);
+      for (int i = 0; i < sizeof(InputData); i++) {
+        bytePtr[i] = Wire.read();
+      }
+      // 残りのデータを捨てる
+      while (Wire.available() > 0) {
+        Wire.read();
+      }
+      _instance->config.receive_new = true;
+    }
+  }
+
   static void static_request_cb(){
     if(_instance == nullptr) return;
-    Wire.write(reinterpret_cast<uint8_t*>(&_instance->response), sizeof(OutputData));
+    _instance->config.send_success = Wire.write(reinterpret_cast<uint8_t*>(&_instance->response), sizeof(OutputData)) == sizeof(OutputData);
   }
 
 public:
   Controller_I2C_Slave_Response(Config_I2C_Slave_Response& config, InputData& input, OutputData& output):
-    Controller_I2C_Slave<InputData,Config_I2C_Slave_Response>(config,input),response(output){}
+    Controller_Base<Config_I2C_Slave_Response,InputData>(config,input),response(output){}
 
   bool begin() override{
     // スレーブ初期化
     Wire.begin(this->config.address, this->config.sda, this->config.scl);
     _instance = this;
-    Wire.onReceive(Controller_I2C_Slave<InputData,Config_I2C_Slave_Response>::static_recv_cb);
+    Wire.onReceive(static_recv_cb);
     Wire.onRequest(static_request_cb);
     return true;
+  }
+
+  bool update() override{
+    if(this->config.receive_new){
+      this->config.receive_new = false;
+      return true;
+    }
+    return false;
   }
 
 };
