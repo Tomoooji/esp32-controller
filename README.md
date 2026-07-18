@@ -2,20 +2,28 @@
 ESP32を有線/無線で操作する汎用コントローラークラス
 ## ファイル構成
 ```
-closteriumesp32-controller/
+esp32-controller/
 ├─ examples/
+│  ├─ blink_espnow/
+│  │  └─ blink_espnow_receiver.ino # ESP-NOW経由でLEDを付けたり消したりするサンプル
 │  └─ closterium_ps4/
 │     └─ closterium_ps4.ino     # ロッカーボギー機構がついた6輪ロボットをPS4コントローラーで動かすサンプル
+├─ extras/
+│  └─ serial_rimocon_raspi/
+│     ├─ serial_rimocon.py      # Raspberry Piから構造体ベースのシリアル通信をするプログラム
+│     └─ ESP32.json             # 通信用設定ファイル
 ├─ src/
 │  ├─ ESP32_Controller.h        # メインのヘッダファイル  ここから各ヘッダに分岐
 │  ├─ Controller_BaseClass.h    # 基底クラスのヘッダファイル  直接使うことはない
 │  ├─ Controller_PS4.h          # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
-│  ├─ Controller_Serial.h       # シリアル通信(UART)で通信するクラスのヘッダファイル
-│  ├─ Controller_I2C.h          # I2C通信で通信するクラスのヘッダファイル
-│  └─ Controller_ESPNOW.h       # ESP-NOWで通信するクラスのヘッダファイル  双方向verもある。
+│  ├─ Controller_Serial.h       # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
+│  ├─ Controller_I2C.h          # I2C通信で通信するクラスのヘッダファイル　双方向verもある
+│  ├─ Controller_BluetoothSerial.h # Bluetooth Classicで通信するクラスのヘッダファイル　双方向verもある
+│  └─ Controller_ESPNOW.h       # ESP-NOWで通信するクラスのヘッダファイル  双方向verもある
 ├─ library.properties
 ├─ LICENSE
 └─ README.md
+
 ```
 
 ## 依存関係
@@ -53,7 +61,7 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 
 ---
 作成者:Tomoooji  
-最終更新:2026/07/15 - ver.1.0.0  
+最終更新:2026/07/18 - ver.1.1.0  
 
 see also:
 - [Planaria Renewal](https://github.com/Tomoooji/Planaria_renewal/blob/example/tomoooji/planaria_renewal/Controller_PS4.h)
