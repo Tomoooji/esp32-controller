@@ -37,11 +37,13 @@ public:
     
     if (Wire.available() >= sizeof(InputData)) {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
+      //*
       uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&this->command);
       for (size_t i = 0; i < sizeof(InputData); i++) {
         bytePtr[i] = Wire.read();
       }
-      
+      /*Wire.readByte(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));*/
+
       // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
       while (Wire.available() > 0) {
         Wire.read();
@@ -49,6 +51,25 @@ public:
       return true;
     }
     return false;
+  }
+};
+
+/////////////////
+
+template <typename InputData, typename OutputData>
+class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData>{
+private:
+  OutputData& response;
+
+public:
+  Controller_I2C_Master_Response(Config_I2C& config, InputData& input, OutputData& output):
+  Controller_I2C_Master<InputData>(config,input),response(output){}
+
+  bool send(){
+    // マスターがスレーブへデータを送信
+    Wire.beginTransmission(this->config.address);
+    Wire.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
+    return Wire.endTransmission() == 0;
   }
 };
 
@@ -93,29 +114,6 @@ public:
   }
 };
 
-/////////////////
-
-template <typename InputData, typename OutputData>
-class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData>{
-private:
-  OutputData& response;
-
-public:
-  Controller_I2C_Master_Response(Config_I2C& config, InputData& input, OutputData& output):
-    response(output){
-    // 基底クラスの初期化
-    this->config = &config;
-    this->command = &input;
-  }
-
-  bool send(){
-    // マスターがスレーブへデータを送信
-    Wire.beginTransmission(this->config.address);
-    Wire.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
-    return Wire.endTransmission() == 0;
-  }
-};
-
 template <typename InputData, typename OutputData>
 class Controller_I2C_Slave_Response : public Controller_I2C_Slave<InputData>{
 private:
@@ -143,10 +141,7 @@ private:
 
 public:
   Controller_I2C_Slave_Response(Config_I2C& config, InputData& input, OutputData& output):
-    response(output){
-    this->config = &config;
-    this->command = &input;
-  }
+    Controller_I2C_Slave<InputData>(config,input),response(output){}
 
   bool begin() override{
     // スレーブ初期化
