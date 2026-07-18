@@ -29,8 +29,7 @@ public:
 
   bool update() override{
     if(BluetoothSerial.available() >= sizeof(InputData)){
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&this->command);
-      BluetoothSerial.readBytes(bytePtr, sizeof(InputData));
+      BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
       
       // 残ったゴミデータがあればすべて読み飛ばす
       while (BluetoothSerial.available() > 0) {

@@ -5,7 +5,7 @@
 
 
 /*
-struct InputData{
+volatile struct InputData{
   //uint32_t angle;//degree
   //uint32_t dist;
   //uint32_t turn;
@@ -13,15 +13,16 @@ struct InputData{
 */
 
 struct Config_ESPNOW{
-  volatile bool receive_new;
+  volatile bool receive_new = false;
 };
 
-template <typename InputData>
-class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData>{
+template <typename InputData,typename CongihData = Config_ESPNOW>
+class Controller_ESPNOW :public Controller_Base<ConfigData,InputData>{
 private:
   inline static Controller_ESPNOW *_instance = nullptr;
+
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
-    if(_instance->config.receive_new || sizeof(InputData) != len) return;
+    if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->command, data, sizeof(InputData));
     _instance->config.receive_new = true;
   }
@@ -52,29 +53,23 @@ public:
 
 struct Config_ESPNOW_Response{
   const uint8_t* address_rimocon = nullptr;
-  volatile bool receive_new;
-  volatile bool send_success;
+  volatile bool receive_new = false;
+  volatile bool send_success false;
 };
 
 template <typename InputData, typename OutData>
-class Controller_ESPNOW_Response :public Config_ESPNOW<Config_ESPNOW_Response,InputData>{
+class Controller_ESPNOW_Response :public Controller_ESPNOW<InputData,Config_ESPNOW_Response>{
 private:
   OutData& response;
   inline static Controller_ESPNOW_Response *_instance = nullptr;
 
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
-    if(_instance->config.receive_new || sizeof(InputData) != len) return;
-    memcpy(&_instance->command, data, sizeof(InputData));
-    _instance->config.receive_new = true;
-  }
-  
   static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
     _instance->config.send_success = (flag == ESP_NOW_SEND_SUCCESS);
   }
 
 public:
   Controller_ESPNOW_Response(Config_ESPNOW_Response& config, InputData& input, OutData& output):
-  Config_ESPNOW<InputData>(config,input),(output){}
+  Config_ESPNOW<InputData,Config_ESPNOW_Response>(config,input),(output){}
   
   bool begin() override{
     WiFi.mode(WIFI_STA);
@@ -88,19 +83,11 @@ public:
     if(esp_now_add_peer(&peer_info) != ESP_OK) return false;
     
     _instance = this;
-    esp_now_register_recv_cb(static_recv_cb);
+    esp_now_register_recv_cb(Controller_ESPNOW<InputData,Config_ESPNOW_Response>::static_recv_cb);
     esp_now_register_send_cb(static_send_cb);
     return true;
   
     }
-  
-  bool update() override{
-    if(this->config.receive_new){
-      this->config.receive_new = false;
-      return true;
-    }
-    return false;
-  }
 
   void send(){
     esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->response), sizeof(OutData));

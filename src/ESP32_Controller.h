@@ -12,19 +12,25 @@
   #include "Controller_Serial.h"
   template <typename InputData>
   using Controller = Controller_Serial<InputData>;
-  //using Controller_Response = Controller_Serial_Response<InputData>;
+  using Controller_Response = Controller_Serial_Response<InputData>;
 
 #elif CONTROLLER_TYPE == CONTROLLER_I2C
   #include "Controller_I2C.h"
   template <typename InputData>
-  using Controller = Controller_I2C<InputData>;
-  //using Controller_Response = Controller_I2C_Response<InputData>;
+  using Controller = Controller_I2C_Master<InputData>;
+  using Controller_Response = Controller_I2C_Master_Response<InputData>;
 
 #elif CONTROLLER_TYPE == CONTROLLER_ESPNOW
   #include "Controller_ESPNOW.h"
   template <typename InputData>
   using Controller = Controller_ESPNOW<InputData>;
   using Controller_Response = Controller_ESPNOW_Response<InputData>;
+
+#elif CONTROLLER_TYPE == CONTROLLER_BLUETOOTHSERIAL
+  #include "Controller_BluetoothSerial.h"
+  template <typename InputData>
+  using Controller = Controller_BluetoorhSerial<InputData>;
+  using Controller_Response = Controller_BluetoorhSerial_Response<InputData>;
 
 /*
 #elif CONTROLLER_TYPE == CONTROLLER_REMOTEXY
