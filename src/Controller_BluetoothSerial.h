@@ -20,25 +20,21 @@ struct Config_BluetoothSerial{
 // ============================================
 template <typename InputData>
 class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial, InputData>{
-private:
-  BluetoothSerial& BT;
-
 public:
-  Controller_BluetoothSerial(BluetoothSerial& bt, Config_BluetoothSerial& config, InputData& input):
-    BT(bt), config(config), command(input) {}
+  using Controller_Base<Config_BluetoothSerial,InputData>::Controller_Base;
 
   bool begin() override{
-    return this->BT.begin(this->config.device_name);
+    return BluetoothSerial.begin(this->config.device_name);
   }
 
   bool update() override{
-    if(this->BT.available() >= sizeof(InputData)){
+    if(BluetoothSerial.available() >= sizeof(InputData)){
       uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&this->command);
-      this->BT.readBytes(bytePtr, sizeof(InputData));
+      BluetoothSerial.readBytes(bytePtr, sizeof(InputData));
       
       // 残ったゴミデータがあればすべて読み飛ばす
-      while (this->BT.available() > 0) {
-        this->BT.read();
+      while (BluetoothSerial.available() > 0) {
+        BluetoothSerial.read();
       }
       return true;
     }
@@ -50,35 +46,16 @@ public:
 // BluetoothSerial（双方向通信）
 // ============================================
 template <typename InputData, typename OutputData>
-class Controller_BluetoothSerial_Response : public Controller_Base<Config_BluetoothSerial, InputData>{
+class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<Config_BluetoothSerial, InputData>{
 private:
-  BluetoothSerial& BT;
   OutputData& response;
 
 public:
   Controller_BluetoothSerial_Response(BluetoothSerial& bt, Config_BluetoothSerial& config, InputData& input, OutputData& output):
-    BT(bt), config(config), command(input), response(output) {}
-
-  bool begin() override{
-    return this->BT.begin(this->config.device_name);
-  }
-
-  bool update() override{
-    if(this->BT.available() >= sizeof(InputData)){
-      uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&this->command);
-      this->BT.readBytes(bytePtr, sizeof(InputData));
-      
-      // 残ったゴミデータがあればすべて読み飛ばす
-      while (this->BT.available() > 0) {
-        this->BT.read();
-      }
-      return true;
-    }
-    return false;
-  }
+    Controller_BluetoothSerial<InputData>(config,input),response(output) {}
 
   bool send(){
-    size_t written = this->BT.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
+    size_t written = BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
     return written == sizeof(OutputData);
   }
 };

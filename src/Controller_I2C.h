@@ -114,6 +114,8 @@ public:
   }
 };
 
+//////////////////
+
 template <typename InputData, typename OutputData>
 class Controller_I2C_Slave_Response : public Controller_I2C_Slave<InputData>{
 private:
