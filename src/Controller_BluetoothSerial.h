@@ -9,7 +9,10 @@
  * 
  * @note 
  */
+
+#ifdef ESP32
 #pragma once
+
 #include "Controller_BaseClass.h"
 #include <BluetoothSerial.h>
 
@@ -51,6 +54,8 @@ public:
     return false;
   }
 };
+template <typename InputData>
+using Controller = Controller_BluetoothSerial<InputData>;
 
 // ============================================
 // BluetoothSerial（双方向通信）
@@ -68,4 +73,7 @@ public:
     return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
+template <typename InputData>
+using Controller_Response = Controller_BlutoothSerial_Response<InputData>;
 
+#endif

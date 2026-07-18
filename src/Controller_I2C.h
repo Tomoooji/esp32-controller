@@ -9,7 +9,10 @@
  * 
  * @note 基本的に機体側はMasterとして運用、Slaveは一旦放置！
  */
+
+#ifdef ESP32
 #pragma once
+
 #include "Controller_BaseClass.h"
 #include <Wire.h>
 
@@ -77,6 +80,8 @@ public:
     return false;
   }
 };
+template <typename InputData>
+using Controller = Controller_I2C_Master<InputData>;
 
 /////////////////
 
@@ -118,6 +123,8 @@ public:
     return Wire.endTransmission() == 0;
   }
 };
+template <typename InputData>
+using Controller_Response = Controller_I2C_Master_Response<InputData>;
 
 
 
@@ -237,3 +244,4 @@ public:
 
 };
 
+#endif

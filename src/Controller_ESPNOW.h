@@ -9,7 +9,9 @@
  * 
  * @note 
  */
+#ifdef ESP32
 #pragma once
+
 #include "Controller_BaseClass.h"
 #include <esp_now.h>
 #include <WiFi.h>
@@ -91,6 +93,7 @@ public:
     return false;
   }
 };
+using Controller = Controller_ESPNOW<InputData>;
 
 /////////
 /* memo
@@ -196,5 +199,6 @@ public:
     esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->response), sizeof(OutData));
   }
 };
+using Controller_Response = Controller_ESPNOW_Response<InputData>;
 
-
+#endif

@@ -9,7 +9,10 @@
  * 
  * @note 
  */
+
+#ifdef ESP32
 #pragma once
+
 #include "Controller_BaseClass.h"
 
 /*
@@ -79,6 +82,8 @@ public:
     return false;
   }
 };
+template <typename InputData>
+using Controller = Controller_Serial<InputData>;
 
 //////////
 
@@ -119,3 +124,7 @@ public:
   }
 };
 
+template <typename InputData>
+using Controller_Response = Controller_Serial_Response<InputData>;
+
+#endif

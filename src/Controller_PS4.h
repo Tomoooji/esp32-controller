@@ -9,7 +9,10 @@
  * 
  * @note 
  */
+
+#ifdef ESP32
 #pragma once
+
 #include "Controller_BaseClass.h"
 #include <PS4Controller.h>
 
@@ -58,4 +61,7 @@ public:
     return false;
   }
 };
+template <typename InputData>
+using Controller = Controller_PS4<InputData>;
 
+#endif

@@ -1,5 +1,4 @@
-#define CONTROLLER_TYPE CONTROLLER_PS4
-#include <ESP32_Controller.h>
+#include <ESP32_Controller_PS4.h>
 
 struct WheelCommand{
   int speed_L;

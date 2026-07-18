@@ -1,10 +1,9 @@
-#define CONTROLLER_TYPE CONTROLLER_ESPNOW
-#include <ESP32_Controller.h>
+#include <ESP32_Controller_ESPNOW.h>
 
 struct BlinkCommand{
   bool is_on;
   int power;
-} __attribute__((packed)) command;
+} __attribute__((__packed__)) command;
 Config_ESPNOW config;
 Controller<BlinkCommand> esprimocon(config,command);
 

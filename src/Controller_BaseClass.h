@@ -9,7 +9,9 @@
  * 
  * @note 
  */
+#ifdef ESP32
 #pragma once
+
 #include <Arduino.h>
 
 /**
@@ -82,3 +84,5 @@ public:
 };
 */
 ///////////////////////////
+
+#endif
