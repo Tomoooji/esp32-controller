@@ -33,7 +33,7 @@ struct Config_Serial{
 /**
  * @brief 
  * 
- * @tparam InputData 
+ * @tparam InputData 相手から受け取るデータ(構造体)
  */
 template <typename InputData>
 class Controller_Serial : public Controller_Base<Config_Serial,InputData>{
@@ -44,9 +44,9 @@ private:
 public:
 
   /**
-   * @brief Construct a new Controller_Serial object
+   * @brief Controller_Serial オブジェクトを作成
    * 
-   * @param serial 
+   * @param serial Serial or Serial2
    * @param config 
    * @param input 
    */
@@ -54,22 +54,24 @@ public:
     Controller_Base<Config_Serial,InputData>(config,input),SER(serial){}
 
   /**
-   * @brief 
+   * @brief setup()で呼ばれる初期化関数
+   * @details 
    * 
-   * @retval true 
-   * @retval false 
+   * @retval ture 初期化成功
+   * @retval false 初期化失敗
+   * @note SERIAL_8N1 = 8ビット、パリティなし、ストップビット1（8N1）
    */
   bool begin() override{
     this->SER.begin(this->config.baudrate, SERIAL_8N1, this->config.Rx, this->config.Tx);
-    // 8ビット、パリティなし、ストップビット1（8N1）
     return this->SER;
   }
 
   /**
-   * @brief 
+   * @brief loop()内で呼ばれる値の更新を行う関数
+   * @details 
    * 
-   * @retval true 
-   * @retval false 
+   * @retval true 更新あり
+   * @retval false 更新なし
    */
   bool update() override{
     if(this->SER.available() >= sizeof(InputData)){
@@ -90,7 +92,7 @@ using Controller = Controller_Serial<InputData>;
 /**
  * @brief 
  * 
- * @tparam InputData 
+ * @tparam InputData 相手から受け取るデータ(構造体)
  * @tparam OutputData 
  */
 template <typename InputData, typename OutputData>
@@ -103,7 +105,7 @@ private:
 public:
 
   /**
-   * @brief Construct a new Controller_Serial_Response object
+   * @brief Controller_Serial_Response オブジェクトを作成
    * 
    * @param serial 
    * @param config 
@@ -114,10 +116,11 @@ public:
     Controller_Serial<InputData>(serial,config,input),response{output}{}
 
   /**
-   * @brief 
+   * @brief loop()内で呼ばれる値の更新を行う関数
+   * @details 
    * 
-   * @retval true 
-   * @retval false 
+   * @retval true 更新あり
+   * @retval false 更新なし
    */
   bool send(){
     return this->SER.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);

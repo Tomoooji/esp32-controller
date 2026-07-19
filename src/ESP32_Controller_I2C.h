@@ -33,10 +33,10 @@ struct Config_I2C_Master{
 };
 
 /**
- * @brief 
- * @details 
+ * @brief I2C(受信専用,Master)クラス
  * 
- * @tparam InputData 
+ * @tparam InputData 相手から受け取るデータ(構造体)
+ * @note 機体は他のI2C機器との接続がありうるのでMasterとして運用
  */
 template <typename InputData>
 class Controller_I2C_Master : public Controller_Base<Config_I2C_Master,InputData>{
@@ -45,11 +45,11 @@ public:
   using Controller_Base<Config_I2C_Master,InputData>::Controller_Base;
 
   /**
-   * @brief 
+   * @brief setup()で呼ばれる初期化関数
    * @details 
    * 
-   * @retval true 
-   * @retval false 
+   * @retval ture 初期化成功
+   * @retval false 初期化失敗
    */
   bool begin() override{
     // マスター初期化（アドレス指定しない）
@@ -57,11 +57,11 @@ public:
   }
 
   /**
-   * @brief 
+   * @brief loop()内で呼ばれる値の更新を行う関数
    * @details 
    * 
-   * @retval true 
-   * @retval false 
+   * @retval true 更新あり
+   * @retval false 更新なし
    */
   bool update() override{
     // スレーブからデータを要求
@@ -89,7 +89,7 @@ using Controller = Controller_I2C_Master<InputData>;
  * @brief 
  * @details 
  * 
- * @tparam InputData 
+ * @tparam InputData 相手から受け取るデータ(構造体)
  * @tparam OutputData 
  */
 template <typename InputData, typename OutputData>
@@ -99,8 +99,7 @@ private:
 
 public:
   /**
-   * @brief Construct a new Controller_I2C_Master_Response object
-   * @details 
+   * @brief Controller_I2C_Master_Response オブジェクトを作成
    * 
    * @param config 
    * @param input 

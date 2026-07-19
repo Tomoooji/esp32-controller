@@ -40,9 +40,8 @@ public:
   /**
    * @brief 初期化用関数
    * 
-   * @return true 初期化成功
-   * @return false 初期化失敗
-   * 
+   * @retval true 初期化成功
+   * @retval false 初期化失敗
    * @note setup内で呼ぶ。1行if文とかでreturnすると良い
    */
   virtual bool begin() = 0;
@@ -50,9 +49,8 @@ public:
   /**
    * @brief 入力更新関数
    * 
-   * @return true 更新有り
-   * @return false 更新なし
-   * 
+   * @retval true 更新有り
+   * @retval false 更新なし
    * @note loop内で呼ぶ。if文に突っ込んでロボットの動作を全部その中に入れると暴走対策になる
    */
   virtual bool update() = 0;
@@ -61,7 +59,6 @@ public:
    * @brief Get the input object
    * 
    * @return const InputData& 入力データの構造体への参照
-   * 
    * @note Controller.get_input().XXで値を参照できる。代入とかは無理
    */
   const InputData& get_input(){return this->command;}
@@ -70,7 +67,6 @@ public:
    * @brief Get the config object
    * 
    * @return ConfigData& 設定データの構造体への参照
-   * 
    * @note Controller.get_config().XXで値の参照,更新ができる。
    */
   ConfigData& get_config(){return this->config;}

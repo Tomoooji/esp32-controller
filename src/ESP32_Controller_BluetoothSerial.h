@@ -24,23 +24,41 @@ struct InputData{
 } __attribute__((packed));
 */
 
+/** @brief  */
 struct Config_BluetoothSerial{
   const char* device_name = "ESP32_BT";
   uint32_t baud_rate = 115200;
 };
 
-// ============================================
-// BluetoothSerial（受信のみ）
-// ============================================
+/**
+ * @brief 
+ * 
+ * @tparam InputData 相手から受け取るデータ(構造体)
+ */
 template <typename InputData>
 class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData>{
 public:
+
   using Controller_Base<Config_BluetoothSerial,InputData>::Controller_Base;
 
+  /**
+   * @brief setup()で呼ばれる初期化関数
+   * @details 
+   * 
+   * @retval ture 初期化成功
+   * @retval false 初期化失敗
+   */
   bool begin() override{
     return BluetoothSerial.begin(this->config.device_name);
   }
 
+  /**
+   * @brief loop()内で呼ばれる値の更新を行う関数
+   * @details 
+   * 
+   * @retval true 更新あり
+   * @retval false 更新なし
+   */
   bool update() override{
     if(BluetoothSerial.available() >= sizeof(InputData)){
       BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
@@ -54,25 +72,48 @@ public:
     return false;
   }
 };
+
 template <typename InputData>
 using Controller = Controller_BluetoothSerial<InputData>;
 
-// ============================================
-// BluetoothSerial（双方向通信）
-// ============================================
+
+
+
+/**
+ * @brief 
+ * 
+ * @tparam InputData 相手から受け取るデータ(構造体)
+ * @tparam OutputData 
+ */
 template <typename InputData, typename OutputData>
 class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData>{
+
 private:
   OutputData& response;
 
 public:
+
+  /**
+   * @brief Controller_BluetoothSerial_Response オブジェクトを作成
+   * 
+   * @param config 
+   * @param input 
+   * @param output 
+   */
   Controller_BluetoothSerial_Response(Config_BluetoothSerial& config, InputData& input, OutputData& output):
     Controller_BluetoothSerial<InputData>(config,input),response(output) {}
 
+  /**
+   * @brief 
+   * 
+   * @retval true 
+   * @retval false 
+   */
   bool send(){
     return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
+
 template <typename InputData>
 using Controller_Response = Controller_BlutoothSerial_Response<InputData>;
 

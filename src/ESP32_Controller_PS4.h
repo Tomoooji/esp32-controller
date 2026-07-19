@@ -38,10 +38,11 @@ public:
   using Controller_Base<Config_PS4,InputData>::Controller_Base;
   
   /**
-   * @brief 
+   * @brief setup()で呼ばれる初期化関数
+   * @details 
    * 
-   * @return true 
-   * @return false 
+   * @retval true 初期化成功
+   * @retval false 初期化失敗
    */
   bool begin() override{
     return PS4.begin(this->config.mac);
@@ -50,8 +51,8 @@ public:
   /**
    * @brief 
    * 
-   * @return true 
-   * @return false 
+   * @retval true 
+   * @retval false 
    */
   bool update() override{
     if(PS4.isConnected()){
