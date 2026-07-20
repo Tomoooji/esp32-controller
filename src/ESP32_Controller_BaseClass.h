@@ -18,7 +18,7 @@
  * @brief 抽象基底クラス
  * 
  * @tparam ConfigData 設定値とかフラグの格納用
- * @tparam InputData 入力されるデータの格納用
+ * @tparam InputData  入力されるデータの格納用
  */
 template <typename ConfigData, typename InputData>
 class Controller_Base{
@@ -32,15 +32,15 @@ public:
   /**
    * @brief Construct a new Controller_Base object
    * 
-   * @param config 参照でもらう
-   * @param input 同じく
+   * @param config 設定用構造体の参照
+   * @param input  受け取るデータ(構造体)の参照
    */
   explicit Controller_Base(ConfigData& config, InputData& input):config(config),command(input){}
 
   /**
    * @brief 初期化用関数
    * 
-   * @retval true 初期化成功
+   * @retval true  初期化成功
    * @retval false 初期化失敗
    * @note setup内で呼ぶ。1行if文とかでreturnすると良い
    */
@@ -49,7 +49,7 @@ public:
   /**
    * @brief 入力更新関数
    * 
-   * @retval true 更新有り
+   * @retval true  更新有り
    * @retval false 更新なし
    * @note loop内で呼ぶ。if文に突っ込んでロボットの動作を全部その中に入れると暴走対策になる
    */
