@@ -1,6 +1,6 @@
 /**
  * @file Controller_Serial.h
- * @brief 
+ * @brief シリアル通信(UART)で構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
  * @version 0.1
@@ -23,7 +23,7 @@ struct InputData{
 } __attribute__((packed));
 */
 
-/** @brief  */
+/** @brief シリアル通信(UART)の設定 */
 struct Config_Serial{
   int baudrate = 115200;
   int Rx = -1;
@@ -31,7 +31,7 @@ struct Config_Serial{
 };
 
 /**
- * @brief 
+ * @brief シリアル通信(UART)で構造体を受け取るクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
@@ -47,17 +47,16 @@ public:
    * @brief Controller_Serial オブジェクトを作成
    * 
    * @param serial Serial or Serial2
-   * @param config 
-   * @param input 
+   * @param config 設定用構造体の参照
+   * @param input 受け取るデータ(構造体)の参照
    */
   Controller_Serial(HardwareSerial& serial, Config_Serial& config, InputData& input):
     Controller_Base<Config_Serial,InputData>(config,input),SER(serial){}
 
   /**
    * @brief setup()で呼ばれる初期化関数
-   * @details 
    * 
-   * @retval ture 初期化成功
+   * @retval ture  初期化成功
    * @retval false 初期化失敗
    * @note SERIAL_8N1 = 8ビット、パリティなし、ストップビット1（8N1）
    */
@@ -68,9 +67,9 @@ public:
 
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
-   * @details 
+   * @details データ量を指定して読み込み、余った分は捨てる
    * 
-   * @retval true 更新あり
+   * @retval true  更新あり
    * @retval false 更新なし
    */
   bool update() override{
@@ -90,10 +89,10 @@ using Controller = Controller_Serial<InputData>;
 //////////
 
 /**
- * @brief 
+ * @brief シリアル通信(UART)で構造体を送受信するクラス
  * 
- * @tparam InputData 相手から受け取るデータ(構造体)
- * @tparam OutputData 
+ * @tparam InputData  相手から受け取るデータ(構造体)
+ * @tparam OutputData 相手に送るデータ(構造体)
  */
 template <typename InputData, typename OutputData>
 class Controller_Serial_Response : public Controller_Serial<InputData>{
@@ -107,19 +106,18 @@ public:
   /**
    * @brief Controller_Serial_Response オブジェクトを作成
    * 
-   * @param serial 
-   * @param config 
-   * @param input 
-   * @param output 
+   * @param serial Serial or Serial2
+   * @param config 設定用構造体の参照
+   * @param input 受け取るデータ(構造体)の参照
+   * @param output 送るデータ(構造体)の参照
    */
   Controller_Serial_Response(HardwareSerial& serial, Config_Serial& config, InputData& input, OutputData& output):
     Controller_Serial<InputData>(serial,config,input),response{output}{}
 
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
-   * @details 
    * 
-   * @retval true 更新あり
+   * @retval true  更新あり
    * @retval false 更新なし
    */
   bool send(){
