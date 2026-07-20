@@ -33,7 +33,7 @@ struct Config_I2C_Master{
 };
 
 /**
- * @brief I2C(受信専用,Master)クラス
+ * @brief I2C(Master)で構造体を受け取るクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
  * @note 機体は他のI2C機器との接続がありうるのでMasterとして運用
@@ -48,7 +48,7 @@ public:
    * @brief setup()で呼ばれる初期化関数
    * @details 
    * 
-   * @retval ture 初期化成功
+   * @retval ture  初期化成功
    * @retval false 初期化失敗
    */
   bool begin() override{
@@ -60,7 +60,8 @@ public:
    * @brief loop()内で呼ばれる値の更新を行う関数
    * @details 
    * 
-   * @retval true 更新あり
+   * @note もしかしたらreadByteがエラー吐くかも?
+   * @retval true  更新あり
    * @retval false 更新なし
    */
   bool update() override{
@@ -86,11 +87,11 @@ using Controller = Controller_I2C_Master<InputData>;
 /////////////////
 
 /**
- * @brief 
+ * @brief I2C(Master)で構造体を送受信するクラス
  * @details 
  * 
- * @tparam InputData 相手から受け取るデータ(構造体)
- * @tparam OutputData 
+ * @tparam InputData  相手から受け取るデータ(構造体)
+ * @tparam OutputData 相手に送るデータ(構造体)
  */
 template <typename InputData, typename OutputData>
 class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData>{
@@ -101,19 +102,18 @@ public:
   /**
    * @brief Controller_I2C_Master_Response オブジェクトを作成
    * 
-   * @param config 
-   * @param input 
-   * @param output 
+   * @param config 設定用構造体の参照
+   * @param input  受け取るデータ(構造体)の参照
+   * @param output 送るデータ(構造体)の参照
    */
   Controller_I2C_Master_Response(Config_I2C_Master& config, InputData& input, OutputData& output):
   Controller_I2C_Master<InputData>(config,input),response(output){}
 
   /**
-   * @brief 
-   * @details 
+   * @brief 構造体を相手に送る関数
    * 
-   * @retval true 
-   * @retval false 
+   * @retval true  送信成功
+   * @retval false 送信失敗
    */
   bool send(){
     // マスターがスレーブへデータを送信
