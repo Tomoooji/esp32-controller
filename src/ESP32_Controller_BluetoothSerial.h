@@ -1,6 +1,6 @@
 /**
  * @file Controller_BluetoothSerial.h
- * @brief 
+ * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
  * @version 0.1
@@ -24,14 +24,14 @@ struct InputData{
 } __attribute__((packed));
 */
 
-/** @brief  */
+/** @brief BluetoothSerial用設定 */
 struct Config_BluetoothSerial{
   const char* device_name = "ESP32_BT";
   uint32_t baud_rate = 115200;
 };
 
 /**
- * @brief 
+ * @brief BluetoothSerialで構造体を受信するクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
@@ -45,7 +45,7 @@ public:
    * @brief setup()で呼ばれる初期化関数
    * @details 
    * 
-   * @retval ture 初期化成功
+   * @retval ture  初期化成功
    * @retval false 初期化失敗
    */
   bool begin() override{
@@ -54,9 +54,9 @@ public:
 
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
-   * @details 
+   * @details データ量を指定して読み込み、余った分は捨てる
    * 
-   * @retval true 更新あり
+   * @retval true  更新あり
    * @retval false 更新なし
    */
   bool update() override{
@@ -80,10 +80,10 @@ using Controller = Controller_BluetoothSerial<InputData>;
 
 
 /**
- * @brief 
+ * @brief BluetoothSerialで構造体を送受信するクラス
  * 
- * @tparam InputData 相手から受け取るデータ(構造体)
- * @tparam OutputData 
+ * @tparam InputData  相手から受け取るデータ(構造体)
+ * @tparam OutputData 相手に送るデータ(構造体)
  */
 template <typename InputData, typename OutputData>
 class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData>{
@@ -96,18 +96,18 @@ public:
   /**
    * @brief Controller_BluetoothSerial_Response オブジェクトを作成
    * 
-   * @param config 
-   * @param input 
-   * @param output 
+   * @param config 設定用構造体の参照
+   * @param input  受け取るデータ(構造体)の参照
+   * @param output 送るデータ(構造体)の参照
    */
   Controller_BluetoothSerial_Response(Config_BluetoothSerial& config, InputData& input, OutputData& output):
     Controller_BluetoothSerial<InputData>(config,input),response(output) {}
 
   /**
-   * @brief 
+   * @brief 構造体を相手に送る関数
    * 
-   * @retval true 
-   * @retval false 
+   * @retval true  送信成功
+   * @retval false 送信失敗
    */
   bool send(){
     return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);
