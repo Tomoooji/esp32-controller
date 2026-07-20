@@ -9,6 +9,7 @@
  * 
  * @note 
  */
+
 #ifdef ESP32
 #pragma once
 
@@ -30,7 +31,7 @@ struct Config_ESPNOW{
 };
 
 /**
- * @brief 受信のみのクラス
+ * @brief ESP-NOWで構造体を受け取るクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
@@ -48,7 +49,7 @@ private:
    * @attention commandはパック済みの構造体である必要がある
    * @param info たしか送り手のアドレスとかが入ってる
    * @param data 受け取ったデータ
-   * @param len 受け取ったデータのサイズ
+   * @param len  受け取ったデータのサイズ
    */
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
@@ -64,7 +65,7 @@ public:
    * @brief setup()で呼ばれる初期化関数
    * @details WiFiのモード設定、ESP_NOWの初期化、コールバック関数の登録を行う
    * 
-   * @retval ture 初期化成功
+   * @retval ture  初期化成功
    * @retval false 初期化失敗
    */
   bool begin() override{
@@ -82,7 +83,7 @@ public:
    * @brief loop()内で呼ばれる値の更新(のチェック)を行う関数
    * @details 値の更新自体はコールバック関数がやってくれるのでフラグ管理のみ
    * 
-   * @retval true 更新あり
+   * @retval true  更新あり
    * @retval false 更新なし
    */
   bool update() override{
@@ -96,12 +97,8 @@ public:
 using Controller = Controller_ESPNOW<InputData>;
 
 /////////
-/* memo
-  コールバック関数は継承できないので双方向verもBaseからの継承にしている
-  受信onlyの方でupdateとかstatic_recv_cbを変更しても双方向verとは共通化されてないため注意
-*/
 
-/** @brief */
+/** @brief ESP-NOW(送受信)用設定 */
 struct Config_ESPNOW_Response{
   const uint8_t* address_rimocon = nullptr;
   volatile bool receive_new = false;
@@ -109,10 +106,13 @@ struct Config_ESPNOW_Response{
 };
 
 /**
- * @brief 
+ * @brief ESP-NOWで構造体を送受信するクラス
  * 
- * @tparam InputData 
- * @tparam OutData 
+ * @tparam InputData 相手から受け取るデータ(構造体)
+ * @tparam OutData   相手に送るデータ(構造体)
+ * 
+ * @note コールバック関数は継承できないので双方向verもBaseからの継承にしている
+ * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutData>
 class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData>{
@@ -123,7 +123,10 @@ private:
 
   inline static Controller_ESPNOW_Response *_instance = nullptr;
 
-  /** @brief */
+  /**
+   * @brief 受信時のコールバック関数(流用)
+   * @see Controller_ESPNOW::static_recv_cb
+   */
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->command, data, sizeof(InputData));
@@ -131,10 +134,11 @@ private:
   }
 
   /**
-   * @brief 
+   * @brief 送信時のコールバック関数
+   * @details データが相手に届いたかどうか確かめる.
    * 
-   * @param info 
-   * @param flag 
+   * @param info idk
+   * @param flag idk
    */
   static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
     if(_instance == nullptr) return;
@@ -144,20 +148,22 @@ private:
 public:
 
   /**
-   * @brief Construct a new Controller_ESPNOW_Response object
+   * @brief Controller_ESPNOW_Response オブジェクトを作成
    * 
-   * @param config 
-   * @param input 
-   * @param output 
+   * @param config 設定用構造体の参照
+   * @param input  受け取るデータ(構造体)の参照
+   * @param output 送るデータ(構造体)の参照
    */
   Controller_ESPNOW_Response(Config_ESPNOW_Response& config, InputData& input, OutData& output):
   Controller_Base<Config_ESPNOW_Response,InputData>(config,input),response(output){}
   
   /**
-   * @brief 
+   * @brief setup()で呼ばれる初期化関数
+   * @details 送信用にペア登録の処理が追加されている。
    * 
-   * @return true 
-   * @return false 
+   * @see Controller_ESPNOW::begin
+   * @retval true  初期化成功
+   * @retval false 初期化失敗
    */
   bool begin() override{
     WiFi.mode(WIFI_STA);
@@ -177,10 +183,12 @@ public:
   }
 
   /**
-   * @brief 
+   * @brief loop()内で呼ばれる値の更新(のチェック)を行う関数
+   * @details 値の更新自体はコールバック関数がやってくれるのでフラグ管理のみ
    * 
-   * @return true 
-   * @return false 
+   * @see Controller_ESPNOW::update
+   * @retval true  更新あり
+   * @retval false 更新なし
    */
   bool update() override{
     if(this->config.receive_new){
@@ -191,9 +199,8 @@ public:
   }
 
   /**
-   * @brief 
-   * @details 
-   * @attention 
+   * @brief 構造体を相手に送る関数
+   * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
    */
   void send(){
     esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->response), sizeof(OutData));
