@@ -1,13 +1,13 @@
 /**
  * @file Controller_PS4.h
- * @brief 
+ * @brief PS4コントローラー(DualShock4)からBluetoothで入力値を受け取るライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
  * @version 0.1
  * @date 2026-07-18
  * @copyright Copyright (c) 2026
  * 
- * @note 
+ * @note 結構無理くりラップしてるので他クラスとの互換性が不要ならそのまま使うことを推奨します。
  */
 
 #ifdef ESP32
@@ -22,15 +22,16 @@ struct Input_PS4{
 };
 */
 
-/** @brief  */
+/** @brief DualShock4との通信用設定 */
 struct Config_PS4{
   const char* mac = nullptr;
 };
 
 /**
- * @brief 
+ * @brief DualShock4から入力値を受け取るクラス
+ * @details PS4Controllerライブラリのラッパー?みたいな状態
  * 
- * @tparam InputData 
+ * @tparam InputData 相手から受け取るデータ(構造体)
  */
 template <typename InputData>
 class Controller_PS4 :public Controller_Base<Config_PS4,InputData>{
@@ -39,9 +40,8 @@ public:
   
   /**
    * @brief setup()で呼ばれる初期化関数
-   * @details 
    * 
-   * @retval true 初期化成功
+   * @retval true  初期化成功
    * @retval false 初期化失敗
    */
   bool begin() override{
@@ -49,10 +49,11 @@ public:
   }
 
   /**
-   * @brief 
+   * @brief 入力値の代入用関数
    * 
-   * @retval true 
-   * @retval false 
+   * @note command/applyはboolの方が良いとは思うがユーザーに書かせるのもなぁ...
+   * @retval true  コントローラーと接続中
+   * @retval false コントローラーと接続していない
    */
   bool update() override{
     if(PS4.isConnected()){
