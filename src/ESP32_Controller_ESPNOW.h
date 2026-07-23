@@ -6,7 +6,8 @@
  * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
- * @note コールバック関数のinfoはesp_now_recv_info_t* あるいは esp_now_send_info_t* に更新する必要があるかも
+ * @attention C++17以降でないと動かないコードが含まれます。
+ * @attention Arduino Coreのバージョン次第ではコールバック関数のesp_now_recv_info_t*とesp_now_send_info_t*をuint8_t*にする必要がある
  */
 
 #ifdef ESP32
@@ -24,7 +25,7 @@ volatile struct InputData{
 } __attribute__((packed));
 */
 
-/**　@brief ESP-NOW(受信only)用設定 */
+/** @brief ESP-NOW(受信only)用設定 */
 struct Config_ESPNOW{
   volatile bool receive_new = false; ///< 値の更新フラグ
 };
@@ -40,14 +41,14 @@ class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData>{
 
 private:
 
-  inline static Controller_ESPNOW *_instance = nullptr;
+  inline static Controller_ESPNOW *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数
    * @details 受け取ったデータをinputにコピーし、configの新規受信フラグを立てる
    * 
    * @attention inputはパック済みの構造体である必要がある
-   * @param info たしか送り手のアドレスとかが入ってる
+   * @param info たしか送り手のアドレスとかが入ってる(Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
    */
@@ -116,14 +117,14 @@ struct Config_ESPNOW_Response{
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
-template <typename InputData, typename OutData>
+template <typename InputData, typename OutputData>
 class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData>{
 
 private:
 
-  OutData& output;
+  OutputData& output;
 
-  inline static Controller_ESPNOW_Response *_instance = nullptr;
+  inline static Controller_ESPNOW_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数(流用)
@@ -139,7 +140,7 @@ private:
    * @brief 送信時のコールバック関数
    * @details データが相手に届いたかどうか確かめる.
    * 
-   * @param info idk
+   * @param info (Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param flag idk
    */
   static void static_send_cb(const uint8_t* info ,const esp_now_send_status_t flag){
@@ -156,7 +157,7 @@ public:
    * @param input_data  受け取るデータ(構造体)の参照
    * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_ESPNOW_Response(Config_ESPNOW_Response& config_data, InputData& input_data, OutData& output_data):
+  Controller_ESPNOW_Response(Config_ESPNOW_Response& config_data, InputData& input_data, OutputData& output_data):
   Controller_Base<Config_ESPNOW_Response,InputData>(config_data,input_data),output(output_data){}
   
   /**
@@ -205,7 +206,7 @@ public:
    * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
    */
   void send(){
-    esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutData));
+    esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData));
   }
 };
 template <typename InputData, typename OutputData>

@@ -1,0 +1,7 @@
+{
+  "name": "ESP32_Controller",
+  "version": "1.0.0",
+  "dependencies": {
+    "PS4Controller": "https://github.com/pablomarquez76/PS4_Controller_Host.git#v1.1.0"
+  }
+}
