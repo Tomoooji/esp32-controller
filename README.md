@@ -59,7 +59,7 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 
 ---
 作成者:Tomoooji  
-最終更新:2026/07/18  
+最終更新:2026/07/23  
 
 see also:
 - [Planaria Renewal](https://github.com/Tomoooji/Planaria_renewal/blob/example/tomoooji/planaria_renewal/Controller_PS4.h)
