@@ -113,7 +113,7 @@ public:
   }
 };
 
-template <typename InputData>
-using Controller_Response = Controller_BlutoothSerial_Response<InputData>;
+template <typename InputData,OutputData>
+using Controller_Response = Controller_BlutoothSerial_Response<InputData,OutputData>;
 
 #endif

@@ -126,7 +126,7 @@ public:
   }
 };
 
-template <typename InputData>
-using Controller_Response = Controller_Serial_Response<InputData>;
+template <typename InputData, typename OutData>
+using Controller_Response = Controller_Serial_Response<InputData,OutputData>;
 
 #endif

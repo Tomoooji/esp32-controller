@@ -94,6 +94,7 @@ public:
     return false;
   }
 };
+template <typename InputData>
 using Controller = Controller_ESPNOW<InputData>;
 
 /////////
@@ -207,6 +208,7 @@ public:
     esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutData));
   }
 };
+template <typename InputData, typename OutData>
 using Controller_Response = Controller_ESPNOW_Response<InputData>;
 
 #endif

@@ -11,7 +11,7 @@ constexpr uint8_t pin_led = 2;
 
 void setup(){
   if(!esprimocon.begin()) return;
-  ledcAttach(pin_led, OUTPUT);
+  ledcAttach(pin_led, 12800, 8);
 }
 
 void loop(){
