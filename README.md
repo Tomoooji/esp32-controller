@@ -2,7 +2,7 @@
 ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
-> 2026-07-23    READMEに使用目的の追加、ソースコード内のコメント増補、命名の見直し  
+> 2026-07-23    READMEに使用目的の追加、ソースコード内のコメント増補、命名の見直し、クラス図の追加  
 > 2026-07-18    BluetoothSerial対応、Doxygen形式コメントの追加、I2CのデフォルトをMasterに変更  
 > 2026-07-15    初期Verの公開  
 
@@ -64,6 +64,133 @@ ArduinoIDEのESP32を想定しています。
     送信成功の可否は``コントローラーオブジェクト.get_config().send_success``(ESP-NOW)またはsend()の戻り値(それ以外)で参照できます。  
 
 ※ 詳細はソースコード内のコメントやexampleフォルダ内のサンプルスケッチを参照してください。
+
+## クラス図
+(mermaidはGitHubモバイル上では動作しないようなのでブラウザから閲覧してください)  
+### 基底クラスと構造体の関係
+```mermaid
+classDiagram
+    class Controller_Base~ConfigData, InputData~ {
+        # ConfigData& config
+        # InputData& input
+
+        +begin() bool
+        +update() bool
+        +get_input() const InputData&
+        +get_config() ConfigData&
+    }
+
+    class ConfigData {
+        <<user defined>>
+    }
+
+    class InputData {
+        <<user defined>>
+    }
+
+    Controller_Base o-- ConfigData : reference
+    Controller_Base o-- InputData : reference
+```
+### 基底クラスと各クラスの関係
+```mermaid
+classDiagram
+    class Controller_Base~ConfigData, InputData~ {
+        <<abstract>>
+        # ConfigData& config
+        # InputData& input
+        +Controller_Base(ConfigData&, InputData&)
+        +bool begin()*
+        +bool update()*
+        +const InputData& get_input()
+        +ConfigData& get_config()
+    }
+
+    class Controller_BluetoothSerial~InputData~ {
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_BluetoothSerial_Response~InputData, OutputData~ {
+        -OutputData& output
+        +bool send()
+    }
+
+    class Controller_ESPNOW~InputData~ {
+        -static Controller_ESPNOW* _instance
+        -static void static_recv_cb(...)
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_ESPNOW_Response~InputData, OutData~ {
+        -OutData& output
+        -static Controller_ESPNOW_Response* _instance
+        -static void static_recv_cb(...)
+        -static void static_send_cb(...)
+        +bool begin()
+        +bool update()
+        +void send()
+    }
+
+    class Controller_I2C_Master~InputData~ {
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_I2C_Master_Response~InputData, OutputData~ {
+        -OutputData& output
+        +bool send()
+    }
+
+    class Controller_I2C_Slave~InputData~ {
+        -static Controller_I2C_Slave* _instance
+        -static void static_recv_cb(int)
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_I2C_Slave_Response~InputData, OutputData~ {
+        -OutputData& output
+        -static Controller_I2C_Slave_Response* _instance
+        -static void static_recv_cb(int)
+        -static void static_request_cb()
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_PS4~InputData~ {
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_Serial~InputData~ {
+        -HardwareSerial& SER
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_Serial_Response~InputData, OutputData~ {
+        -OutputData& output
+        +bool send()
+    }
+
+    Controller_Base <|-- Controller_BluetoothSerial
+    Controller_BluetoothSerial <|-- Controller_BluetoothSerial_Response
+
+    Controller_Base <|-- Controller_ESPNOW
+    Controller_Base <|-- Controller_ESPNOW_Response
+
+    Controller_Base <|-- Controller_I2C_Master
+    Controller_I2C_Master <|-- Controller_I2C_Master_Response
+
+    Controller_Base <|-- Controller_I2C_Slave
+    Controller_Base <|-- Controller_I2C_Slave_Response
+
+    Controller_Base <|-- Controller_PS4
+
+    Controller_Base <|-- Controller_Serial
+    Controller_Serial <|-- Controller_Serial_Response
+```
 
 ## 参考プログラム(自作)
 - [Planaria Renewal](https://github.com/Tomoooji/Planaria_renewal/blob/example/tomoooji/planaria_renewal/Controller_PS4.h)
