@@ -6,7 +6,7 @@
  * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
- * @note 
+ * @note コールバック関数のinfoはesp_now_recv_info_t* あるいは esp_now_send_info_t* に更新する必要があるかも
  */
 
 #ifdef ESP32
@@ -51,7 +51,7 @@ private:
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
    */
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
+  static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->input, data, sizeof(InputData));
     _instance->config.receive_new = true;
@@ -129,7 +129,7 @@ private:
    * @brief 受信時のコールバック関数(流用)
    * @see Controller_ESPNOW::static_recv_cb
    */
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
+  static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->input, data, sizeof(InputData));
     _instance->config.receive_new = true;
@@ -142,7 +142,7 @@ private:
    * @param info idk
    * @param flag idk
    */
-  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
+  static void static_send_cb(const uint8_t* info ,const esp_now_send_status_t flag){
     if(_instance == nullptr) return;
     _instance->config.send_success = (flag == ESP_NOW_SEND_SUCCESS);
   }
@@ -208,7 +208,7 @@ public:
     esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutData));
   }
 };
-template <typename InputData, typename OutData>
-using Controller_Response = Controller_ESPNOW_Response<InputData>;
+template <typename InputData, typename OutputData>
+using Controller_Response = Controller_ESPNOW_Response<InputData,OutputData>;
 
 #endif
