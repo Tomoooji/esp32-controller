@@ -25,7 +25,7 @@ volatile struct InputData{
 } __attribute__((packed));
 */
 
-/**　@brief ESP-NOW(受信only)用設定 */
+/** @brief ESP-NOW(受信only)用設定 */
 struct Config_ESPNOW{
   volatile bool receive_new = false; ///< 値の更新フラグ
 };
