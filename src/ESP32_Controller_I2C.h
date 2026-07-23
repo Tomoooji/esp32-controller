@@ -237,7 +237,7 @@ struct Config_I2C_Slave_Response{
  * @brief I2C(Slave)で構造体を送受信するクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
- * @tparam OutData   相手に送るデータ(構造体)
+ * @tparam OutputData   相手に送るデータ(構造体)
  * 
  * @note コールバック関数は継承できないので双方向verもBaseからの継承にしている
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
