@@ -94,6 +94,7 @@ classDiagram
 ### 基底クラスと各クラスの関係
 ```mermaid
 classDiagram
+direction LR
     class Controller_Base~ConfigData, InputData~ {
         <<abstract>>
         # ConfigData& config
@@ -132,6 +133,22 @@ classDiagram
         +void send()
     }
 
+    class Controller_PS4~InputData~ {
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_Serial~InputData~ {
+        -HardwareSerial& SER
+        +bool begin()
+        +bool update()
+    }
+
+    class Controller_Serial_Response~InputData, OutputData~ {
+        -OutputData& output
+        +bool send()
+    }
+
     class Controller_I2C_Master~InputData~ {
         +bool begin()
         +bool update()
@@ -158,38 +175,22 @@ classDiagram
         +bool update()
     }
 
-    class Controller_PS4~InputData~ {
-        +bool begin()
-        +bool update()
-    }
-
-    class Controller_Serial~InputData~ {
-        -HardwareSerial& SER
-        +bool begin()
-        +bool update()
-    }
-
-    class Controller_Serial_Response~InputData, OutputData~ {
-        -OutputData& output
-        +bool send()
-    }
-
     Controller_Base <|-- Controller_BluetoothSerial
     Controller_BluetoothSerial <|-- Controller_BluetoothSerial_Response
 
     Controller_Base <|-- Controller_ESPNOW
     Controller_Base <|-- Controller_ESPNOW_Response
 
+    Controller_Base <|-- Controller_PS4
+
+    Controller_Base <|-- Controller_Serial
+    Controller_Serial <|-- Controller_Serial_Response
+
     Controller_Base <|-- Controller_I2C_Master
     Controller_I2C_Master <|-- Controller_I2C_Master_Response
 
     Controller_Base <|-- Controller_I2C_Slave
     Controller_Base <|-- Controller_I2C_Slave_Response
-
-    Controller_Base <|-- Controller_PS4
-
-    Controller_Base <|-- Controller_Serial
-    Controller_Serial <|-- Controller_Serial_Response
 ```
 
 ## 参考プログラム(自作)
