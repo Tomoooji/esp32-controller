@@ -209,6 +209,6 @@ public:
   }
 };
 template <typename InputData, typename OutData>
-using Controller_Response = Controller_ESPNOW_Response<InputData>;
+using Controller_Response = Controller_ESPNOW_Response<InputData,OutputData>;
 
 #endif
