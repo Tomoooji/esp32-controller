@@ -34,6 +34,7 @@ struct Config_Serial{
  * @brief シリアル通信(UART)で構造体を受け取るクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
+ * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
 class Controller_Serial : public Controller_Base<Config_Serial,InputData>{
@@ -75,7 +76,7 @@ public:
   bool update() override{
     if(this->SER.available() >= sizeof(InputData)){
       this->SER.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
-      while (this->SER.available() > 0) {
+      while(this->SER.available() > 0){
         this->SER.read();
       }
       return true;
@@ -93,6 +94,7 @@ using Controller = Controller_Serial<InputData>;
  * 
  * @tparam InputData  相手から受け取るデータ(構造体)
  * @tparam OutputData 相手に送るデータ(構造体)
+ * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
 class Controller_Serial_Response : public Controller_Serial<InputData>{

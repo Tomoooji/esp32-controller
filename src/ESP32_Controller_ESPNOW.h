@@ -34,6 +34,7 @@ struct Config_ESPNOW{
  * @brief ESP-NOWで構造体を受け取るクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
+ * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
 class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData>{
@@ -112,6 +113,7 @@ struct Config_ESPNOW_Response{
  * @tparam OutData   相手に送るデータ(構造体)
  * 
  * @note コールバック関数は継承できないので双方向verもBaseからの継承にしている
+ * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutData>

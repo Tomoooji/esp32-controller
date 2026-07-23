@@ -36,7 +36,8 @@ struct Config_I2C_Master{
  * @brief I2C(Master)で構造体を受け取るクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
- * @note 機体は他のI2C機器との接続がありうるのでMasterとして運用
+ * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
+ * @note 機体側は他のI2C機器との接続がありうるのでMasterとして運用
  */
 template <typename InputData>
 class Controller_I2C_Master : public Controller_Base<Config_I2C_Master,InputData>{
@@ -96,6 +97,8 @@ using Controller = Controller_I2C_Master<InputData>;
  * 
  * @tparam InputData  相手から受け取るデータ(構造体)
  * @tparam OutputData 相手に送るデータ(構造体)
+ * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
+ * @note 機体側は他のI2C機器との接続がありうるのでMasterとして運用
  */
 template <typename InputData, typename OutputData>
 class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData>{
@@ -155,6 +158,7 @@ struct Config_I2C_Slave{
  * @brief I2C(Slave)で構造体を受け取るクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
+ * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
 class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData>{
@@ -237,6 +241,7 @@ struct Config_I2C_Slave_Response{
  * @tparam OutData   相手に送るデータ(構造体)
  * 
  * @note コールバック関数は継承できないので双方向verもBaseからの継承にしている
+ * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutputData>
@@ -251,7 +256,7 @@ private:
    */
   static void static_recv_cb(int size){
     if(_instance == nullptr) return;
-    if (size >= sizeof(InputData)) {
+    if(size >= sizeof(InputData)){
       Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);

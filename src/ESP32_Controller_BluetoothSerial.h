@@ -34,6 +34,7 @@ struct Config_BluetoothSerial{
  * @brief BluetoothSerialで構造体を受信するクラス
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
+ * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
 class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData>{
@@ -64,7 +65,7 @@ public:
       BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
       
       // 残ったゴミデータがあればすべて読み飛ばす
-      while (BluetoothSerial.available() > 0) {
+      while(BluetoothSerial.available() > 0){
         BluetoothSerial.read();
       }
       return true;
@@ -77,13 +78,12 @@ template <typename InputData>
 using Controller = Controller_BluetoothSerial<InputData>;
 
 
-
-
 /**
  * @brief BluetoothSerialで構造体を送受信するクラス
  * 
  * @tparam InputData  相手から受け取るデータ(構造体)
  * @tparam OutputData 相手に送るデータ(構造体)
+ * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
 class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData>{
@@ -101,7 +101,7 @@ public:
    * @param output 送るデータ(構造体)の参照
    */
   Controller_BluetoothSerial_Response(Config_BluetoothSerial& config, InputData& input, OutputData& output):
-    Controller_BluetoothSerial<InputData>(config,input),response(output) {}
+    Controller_BluetoothSerial<InputData>(config,input),response(output){}
 
   /**
    * @brief 構造体を相手に送る関数
