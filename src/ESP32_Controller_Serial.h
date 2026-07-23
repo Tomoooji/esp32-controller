@@ -3,8 +3,7 @@
  * @brief シリアル通信(UART)で構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @version 0.1
- * @date 2026-07-18
+ * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
  * @note 
@@ -48,11 +47,11 @@ public:
    * @brief Controller_Serial オブジェクトを作成
    * 
    * @param serial Serial or Serial2
-   * @param config 設定用構造体の参照
-   * @param input 受け取るデータ(構造体)の参照
+   * @param config_data 設定用構造体の参照
+   * @param input_data 受け取るデータ(構造体)の参照
    */
-  Controller_Serial(HardwareSerial& serial, Config_Serial& config, InputData& input):
-    Controller_Base<Config_Serial,InputData>(config,input),SER(serial){}
+  Controller_Serial(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data):
+    Controller_Base<Config_Serial,InputData>(config_data,input_data),SER(serial){}
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -75,7 +74,7 @@ public:
    */
   bool update() override{
     if(this->SER.available() >= sizeof(InputData)){
-      this->SER.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
+      this->SER.readBytes(reinterpret_cast<uint8_t*>(&this->input), sizeof(InputData));
       while(this->SER.available() > 0){
         this->SER.read();
       }
@@ -101,7 +100,7 @@ class Controller_Serial_Response : public Controller_Serial<InputData>{
 
 private:
 
-  OutputData& response;
+  OutputData& output;
 
 public:
 
@@ -109,12 +108,12 @@ public:
    * @brief Controller_Serial_Response オブジェクトを作成
    * 
    * @param serial Serial or Serial2
-   * @param config 設定用構造体の参照
-   * @param input 受け取るデータ(構造体)の参照
-   * @param output 送るデータ(構造体)の参照
+   * @param config_data 設定用構造体の参照
+   * @param input_data 受け取るデータ(構造体)の参照
+   * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_Serial_Response(HardwareSerial& serial, Config_Serial& config, InputData& input, OutputData& output):
-    Controller_Serial<InputData>(serial,config,input),response{output}{}
+  Controller_Serial_Response(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data, OutputData& output_data):
+    Controller_Serial<InputData>(serial,config_data,input_data),output{output_data}{}
 
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
@@ -123,7 +122,7 @@ public:
    * @retval false 更新なし
    */
   bool send(){
-    return this->SER.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);
+    return this->SER.write(reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 

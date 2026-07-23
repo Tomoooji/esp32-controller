@@ -3,8 +3,7 @@
  * @brief ESP-NOWで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji
- * @version 0.1
- * @date 2026-07-18
+ * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
  * @note 
@@ -45,16 +44,16 @@ private:
 
   /**
    * @brief 受信時のコールバック関数
-   * @details 受け取ったデータをcommandにコピーし、configの新規受信フラグを立てる
+   * @details 受け取ったデータをinputにコピーし、configの新規受信フラグを立てる
    * 
-   * @attention commandはパック済みの構造体である必要がある
+   * @attention inputはパック済みの構造体である必要がある
    * @param info たしか送り手のアドレスとかが入ってる
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
    */
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
-    memcpy(&_instance->command, data, sizeof(InputData));
+    memcpy(&_instance->input, data, sizeof(InputData));
     _instance->config.receive_new = true;
   }
 
@@ -121,7 +120,7 @@ class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,
 
 private:
 
-  OutData& response;
+  OutData& output;
 
   inline static Controller_ESPNOW_Response *_instance = nullptr;
 
@@ -131,7 +130,7 @@ private:
    */
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
-    memcpy(&_instance->command, data, sizeof(InputData));
+    memcpy(&_instance->input, data, sizeof(InputData));
     _instance->config.receive_new = true;
   }
 
@@ -152,12 +151,12 @@ public:
   /**
    * @brief Controller_ESPNOW_Response オブジェクトを作成
    * 
-   * @param config 設定用構造体の参照
-   * @param input  受け取るデータ(構造体)の参照
-   * @param output 送るデータ(構造体)の参照
+   * @param config_data 設定用構造体の参照
+   * @param input_data  受け取るデータ(構造体)の参照
+   * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_ESPNOW_Response(Config_ESPNOW_Response& config, InputData& input, OutData& output):
-  Controller_Base<Config_ESPNOW_Response,InputData>(config,input),response(output){}
+  Controller_ESPNOW_Response(Config_ESPNOW_Response& config_data, InputData& input_data, OutData& output_data):
+  Controller_Base<Config_ESPNOW_Response,InputData>(config_data,input_data),output(output_data){}
   
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -205,7 +204,7 @@ public:
    * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
    */
   void send(){
-    esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->response), sizeof(OutData));
+    esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutData));
   }
 };
 using Controller_Response = Controller_ESPNOW_Response<InputData>;

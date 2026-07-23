@@ -3,8 +3,7 @@
  * @brief PS4コントローラー(DualShock4)からBluetoothで入力値を受け取るライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @version 0.1
- * @date 2026-07-18
+ * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
  * @note 結構無理くりラップしてるので他クラスとの互換性が不要ならそのまま使うことを推奨します。
@@ -51,13 +50,13 @@ public:
   /**
    * @brief 入力値の代入用関数
    * 
-   * @note command/applyはboolの方が良いとは思うがユーザーに書かせるのもなぁ...
+   * @note input.apply()はboolの方が良いとは思うがユーザーに書かせるのもなぁ...
    * @retval true  コントローラーと接続中
    * @retval false コントローラーと接続していない
    */
   bool update() override{
     if(PS4.isConnected()){
-      this->command.apply();
+      this->input.apply();
       return true;
     }
     return false;

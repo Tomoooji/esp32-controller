@@ -3,8 +3,7 @@
  * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @version 0.1
- * @date 2026-07-18
+ * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
  * @note 
@@ -62,7 +61,7 @@ public:
    */
   bool update() override{
     if(BluetoothSerial.available() >= sizeof(InputData)){
-      BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->command), sizeof(InputData));
+      BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->input), sizeof(InputData));
       
       // 残ったゴミデータがあればすべて読み飛ばす
       while(BluetoothSerial.available() > 0){
@@ -89,19 +88,19 @@ template <typename InputData, typename OutputData>
 class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData>{
 
 private:
-  OutputData& response;
+  OutputData& outpuy;
 
 public:
 
   /**
    * @brief Controller_BluetoothSerial_Response オブジェクトを作成
    * 
-   * @param config 設定用構造体の参照
-   * @param input  受け取るデータ(構造体)の参照
-   * @param output 送るデータ(構造体)の参照
+   * @param config_data 設定用構造体の参照
+   * @param input_data  受け取るデータ(構造体)の参照
+   * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_BluetoothSerial_Response(Config_BluetoothSerial& config, InputData& input, OutputData& output):
-    Controller_BluetoothSerial<InputData>(config,input),response(output){}
+  Controller_BluetoothSerial_Response(Config_BluetoothSerial& config_data, InputData& input_data, OutputData& output_data):
+    Controller_BluetoothSerial<InputData>(config_data,input_data),output(output_data){}
 
   /**
    * @brief 構造体を相手に送る関数
@@ -110,7 +109,7 @@ public:
    * @retval false 送信失敗
    */
   bool send(){
-    return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData)) == sizeof(OutputData);
+    return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 

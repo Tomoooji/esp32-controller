@@ -3,7 +3,6 @@
  * @brief I2Cで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji
- * @version 0.1
  * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
@@ -71,10 +70,10 @@ public:
     
     if (Wire.available() >= sizeof(InputData)) {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->input),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
-      for (size_t i = 0; i < sizeof(RobotCommand); i++) {
+      for (size_t i = 0; i < sizeof(Robotinput); i++) {
           bytePtr[i] = Wire.read();
       }*/
       // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
@@ -103,18 +102,18 @@ using Controller = Controller_I2C_Master<InputData>;
 template <typename InputData, typename OutputData>
 class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData>{
 private:
-  OutputData& response;
+  OutputData& output;
 
 public:
   /**
    * @brief Controller_I2C_Master_Response オブジェクトを作成
    * 
-   * @param config 設定用構造体の参照
-   * @param input  受け取るデータ(構造体)の参照
-   * @param output 送るデータ(構造体)の参照
+   * @param config_data 設定用構造体の参照
+   * @param input_data  受け取るデータ(構造体)の参照
+   * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_I2C_Master_Response(Config_I2C_Master& config, InputData& input, OutputData& output):
-  Controller_I2C_Master<InputData>(config,input),response(output){}
+  Controller_I2C_Master_Response(Config_I2C_Master& config_data, InputData& input_data, OutputData& output_data):
+  Controller_I2C_Master<InputData>(config_data,input_data),output(output_data){}
 
   /**
    * @brief 構造体を相手に送る関数
@@ -125,7 +124,7 @@ public:
   bool send(){
     // マスターがスレーブへデータを送信
     Wire.beginTransmission(this->config.address);
-    Wire.write(reinterpret_cast<uint8_t*>(&this->response), sizeof(OutputData));
+    Wire.write(reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData));
     return Wire.endTransmission() == 0;
   }
 };
@@ -168,17 +167,17 @@ private:
   /**
   /**
    * @brief 受信時のコールバック関数
-   * @details 受け取ったデータをcommandにコピーし、configの新規受信フラグを立てる
+   * @details 受け取ったデータをinputにコピーし、configの新規受信フラグを立てる
    * 
    * @param size 受け取ったデータのサイズ?
    */
   static void static_recv_cb(int size){
     if(_instance == nullptr) return;
     if(size >= sizeof(InputData)){
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->input),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
-      for (size_t i = 0; i < sizeof(RobotCommand); i++) {
+      for (size_t i = 0; i < sizeof(Robotinput); i++) {
           bytePtr[i] = Wire.read();
       }*/
       while(Wire.available() > 0){
@@ -247,7 +246,7 @@ struct Config_I2C_Slave_Response{
 template <typename InputData, typename OutputData>
 class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response>{
 private:
-  OutputData& response;
+  OutputData& output;
   inline static Controller_I2C_Slave_Response *_instance = nullptr;
 
   /**
@@ -257,10 +256,10 @@ private:
   static void static_recv_cb(int size){
     if(_instance == nullptr) return;
     if(size >= sizeof(InputData)){
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->command),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->input),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
-      for (size_t i = 0; i < sizeof(RobotCommand); i++) {
+      for (size_t i = 0; i < sizeof(Robotinput); i++) {
           bytePtr[i] = Wire.read();
       }*/
       while(Wire.available() > 0){
@@ -276,7 +275,7 @@ private:
    */
   static void static_request_cb(){
     if(_instance == nullptr) return;
-    _instance->config.send_success = Wire.write(reinterpret_cast<uint8_t*>(&_instance->response), sizeof(OutputData)) == sizeof(OutputData);
+    _instance->config.send_success = Wire.write(reinterpret_cast<uint8_t*>(&_instance->output), sizeof(OutputData)) == sizeof(OutputData);
   }
 
 public:
@@ -284,12 +283,12 @@ public:
   /**
    * @brief Controller_I2C_Slave_Response オブジェクトを作成
    * 
-   * @param config 設定用構造体の参照
-   * @param input  受け取るデータ(構造体)の参照
-   * @param output 送るデータ(構造体)の参照
+   * @param config_data 設定用構造体の参照
+   * @param input_data  受け取るデータ(構造体)の参照
+   * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_I2C_Slave_Response(Config_I2C_Slave_Response& config, InputData& input, OutputData& output):
-    Controller_Base<Config_I2C_Slave_Response,InputData>(config,input),response(output){}
+  Controller_I2C_Slave_Response(Config_I2C_Slave_Response& config_data, InputData& input_data, OutputData& output_data):
+    Controller_Base<Config_I2C_Slave_Response,InputData>(config_data,input_data),output(output_data){}
 
   /**
    * @brief setup()で呼ばれる初期化関数

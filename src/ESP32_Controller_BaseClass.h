@@ -3,12 +3,12 @@
  * @brief 各ライブラリの抽象基底クラスのヘッダ
  * 
  * @author Tomoooji
- * @version 0.1
- * @date 2026-07-18
+ * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
  * @note 
  */
+
 #ifdef ESP32
 #pragma once
 
@@ -19,26 +19,27 @@
  * 
  * @tparam ConfigData 設定値とかフラグの格納用
  * @tparam InputData  入力されるデータの格納用
+ * @attention このクラスは継承しないと実体化できない抽象基底クラスです。必ず継承先でbool begin()とbool update()を実装してください。
  */
 template <typename ConfigData, typename InputData>
 class Controller_Base{
 
 protected:
   ConfigData& config;
-  InputData& command;
+  InputData& input;
 
 public:
 
   /**
-   * @brief Construct a new Controller_Base object
+   * @brief Controller_Base オブジェクトを作成
    * 
-   * @param config 設定用構造体の参照
-   * @param input  受け取るデータ(構造体)の参照
+   * @param config_data 設定用構造体の参照
+   * @param input_data  受け取るデータ(構造体)の参照
    */
-  explicit Controller_Base(ConfigData& config, InputData& input):config(config),command(input){}
+  explicit Controller_Base(ConfigData& config_data, InputData& input_data):config(config_data),input(input_data){}
 
   /**
-   * @brief 初期化用関数
+   * @brief 初期化用の純粋仮想関数
    * 
    * @retval true  初期化成功
    * @retval false 初期化失敗
@@ -47,7 +48,7 @@ public:
   virtual bool begin() = 0;
   
   /**
-   * @brief 入力更新関数
+   * @brief 入力更新用の純粋仮想関数
    * 
    * @retval true  更新有り
    * @retval false 更新なし
@@ -56,15 +57,15 @@ public:
   virtual bool update() = 0;
 
   /**
-   * @brief Get the input object
+   * @brief inputオブジェクトのゲッター関数
    * 
    * @return const InputData& 入力データの構造体への参照
-   * @note Controller.get_input().XXで値を参照できる。代入とかは無理
+   * @note Controller.get_input().XXで値を参照できる。代入は不可
    */
-  const InputData& get_input(){return this->command;}
+  const InputData& get_input(){return this->input;}
   
   /**
-   * @brief Get the config object
+   * @brief configオブジェクトのゲッター関数
    * 
    * @return ConfigData& 設定データの構造体への参照
    * @note Controller.get_config().XXで値の参照,更新ができる。
