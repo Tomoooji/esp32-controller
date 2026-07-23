@@ -6,7 +6,8 @@
  * @date 2026-07-23
  * @copyright Copyright (c) 2026
  * 
- * @note 
+ * @attention C++17以降でないと動かないコードが含まれます。
+ * @attention Arduino Coreのバージョン次第ではコールバック関数のesp_now_recv_info_t*とesp_now_send_info_t*をuint8_t*にする必要がある
  */
 
 #ifdef ESP32
@@ -40,14 +41,14 @@ class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData>{
 
 private:
 
-  inline static Controller_ESPNOW *_instance = nullptr;
+  inline static Controller_ESPNOW *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数
    * @details 受け取ったデータをinputにコピーし、configの新規受信フラグを立てる
    * 
    * @attention inputはパック済みの構造体である必要がある
-   * @param info たしか送り手のアドレスとかが入ってる
+   * @param info たしか送り手のアドレスとかが入ってる(Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
    */
@@ -123,7 +124,7 @@ private:
 
   OutData& output;
 
-  inline static Controller_ESPNOW_Response *_instance = nullptr;
+  inline static Controller_ESPNOW_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数(流用)
@@ -139,7 +140,7 @@ private:
    * @brief 送信時のコールバック関数
    * @details データが相手に届いたかどうか確かめる.
    * 
-   * @param info idk
+   * @param info (Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param flag idk
    */
   static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
