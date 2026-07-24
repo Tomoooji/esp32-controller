@@ -3,7 +3,7 @@
  * @brief ESP-NOWで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji
- * @date 2026-07-23
+ * @date 2026-07-24
  * @copyright Copyright (c) 2026
  * 
  * @attention C++17以降でないと動かないコードが含まれます。
@@ -52,7 +52,7 @@ private:
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
    */
-  static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len){
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->input, data, sizeof(InputData));
     _instance->config.receive_new = true;
@@ -130,7 +130,7 @@ private:
    * @brief 受信時のコールバック関数(流用)
    * @see Controller_ESPNOW::static_recv_cb
    */
-  static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len){
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
     if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
     memcpy(&_instance->input, data, sizeof(InputData));
     _instance->config.receive_new = true;
@@ -143,7 +143,7 @@ private:
    * @param info (Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param flag idk
    */
-  static void static_send_cb(const uint8_t* info ,const esp_now_send_status_t flag){
+  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
     if(_instance == nullptr) return;
     _instance->config.send_success = (flag == ESP_NOW_SEND_SUCCESS);
   }

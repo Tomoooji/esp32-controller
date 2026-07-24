@@ -3,7 +3,7 @@
  * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-23
+ * @date 2026-07-24
  * @copyright Copyright (c) 2026
  * 
  * @note 

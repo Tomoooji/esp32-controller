@@ -3,9 +3,10 @@
  * @brief I2Cで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji
- * @date 2026-07-23
+ * @date 2026-07-24
  * @copyright Copyright (c) 2026
  * 
+ * @attention Slave側にはC++17以降でないと動かないコードが含まれます。
  * @note 基本的に機体側はMasterとして運用、Slaveは一旦放置！
  */
 
@@ -162,7 +163,7 @@ struct Config_I2C_Slave{
 template <typename InputData>
 class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData>{
 private:
-  inline static Controller_I2C_Slave *_instance = nullptr;
+  inline static Controller_I2C_Slave *_instance = nullptr; //!< C++17以上でないと使えない
   
   /**
   /**
@@ -247,7 +248,7 @@ template <typename InputData, typename OutputData>
 class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response>{
 private:
   OutputData& output;
-  inline static Controller_I2C_Slave_Response *_instance = nullptr;
+  inline static Controller_I2C_Slave_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数(流用)
