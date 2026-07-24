@@ -23,7 +23,8 @@ struct Input_PS4{
 
 /** @brief DualShock4との通信用設定 */
 struct Config_PS4{
-  const char* mac = nullptr;
+  const char* mac;
+  Config_PS4(const char* mac = nullptr):mac(mac){}
 };
 
 /**
