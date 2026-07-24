@@ -143,8 +143,8 @@ direction LR
         +bool update()
     }
 
-    class Controller_ESPNOW_Response~InputData, OutData~ {
-        -OutData& output
+    class Controller_ESPNOW_Response~InputData, OutputData~ {
+        -OutputData& output
         -static Controller_ESPNOW_Response* _instance
         -static void static_recv_cb(...)
         -static void static_send_cb(...)
