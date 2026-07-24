@@ -116,4 +116,43 @@ public:
 template <typename InputData,OutputData>
 using Controller_Response = Controller_BlutoothSerial_Response<InputData,OutputData>;
 
+/*
+#include "BluetoothSerial.h"
+
+BluetoothSerial SerialBT;
+
+// 接続先（スレーブ側）のMACアドレスをここに正確に入力します
+uint8_t slaveAddress[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}; 
+
+void setup() {
+  Serial.begin(115200);
+  
+  // マスター側として初期化（第2引数をtrueにするとマスターモードになります）
+  SerialBT.begin("ESP32_Master", true); 
+  Serial.println("マスター起動。スレーブに接続を試みます...");
+
+  // MACアドレスを指定して接続
+  if (SerialBT.connect(slaveAddress)) {
+    Serial.println("接続成功！");
+  } else {
+    Serial.println("接続失敗。スレーブが起動しているか確認してください。");
+    // 接続できるまでリトライし続ける場合は、ここでループさせる処理などを入れます
+  }
+}
+
+void loop() {
+  // スレーブへデータを送信（1秒ごとに「Hello」を送信）
+  if (SerialBT.connected()) {
+    SerialBT.println("Hello");
+    Serial.println("データを送信しました: Hello");
+    delay(1000);
+  }
+  
+  // スレーブからデータが届いたらシリアルモニタに表示
+  while (SerialBT.available()) {
+    Serial.write(SerialBT.read());
+  }
+}
+*/
+
 #endif
