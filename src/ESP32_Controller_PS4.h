@@ -21,10 +21,21 @@ struct Input_PS4{
 };
 */
 
-/** @brief DualShock4との通信用設定 */
+/** 
+ * @brief DualShock4との通信用設定
+ * 
+ * @code 
+ *   // ~C++17
+ *   Config_PS4 config{"00:1A:2B:3C:4D:5E"};
+ *   // C++20からは指示付き初期化子が使える
+ *   Config_PS4 config{.mac = "00:1A:2B:3C:4D:5E"}
+ * @endcode
+ * @note MACアドレスなしで初期化するとESP32のMACアドレスが使われる。
+ */
 struct Config_PS4{
   const char* mac;
   Config_PS4(const char* mac = nullptr):mac(mac){}
+  // C++20以上なら const char* mac = nullptr; だけで良い
 };
 
 /**

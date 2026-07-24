@@ -9,6 +9,7 @@
  * @attention C++17以降でないと動かないコードが含まれます。
  * @attention Arduino Coreのバージョン次第ではコールバック関数のesp_now_recv_info_t*とesp_now_send_info_t*をuint8_t*にする必要がある
  */
+#define ESP32
 
 #ifdef ESP32
 #pragma once
@@ -100,9 +101,19 @@ using Controller = Controller_ESPNOW<InputData>;
 
 /////////
 
-/** @brief ESP-NOW(送受信)用設定 */
+/** 
+ * @brief ESP-NOW(送受信)用設定
+ * @code 
+ *   // ~C++17
+ *   Config_ESPNOW_Response config{{0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E}};
+ *   // C++20以降は指示付き初期化子が使える
+ *   Config_ESPNOW_Response config{
+ *      .mac_peer = {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E};
+ *   }
+ * @endcode
+ */
 struct Config_ESPNOW_Response{
-  const uint8_t* address_rimocon = nullptr;
+  const uint8_t* mac_peer;
   volatile bool receive_new = false;
   volatile bool send_success = false;
 };
@@ -174,7 +185,7 @@ public:
       
     esp_now_peer_info_t peer_info;
     memset(&peer_info,0,sizeof(peer_info));
-    memcpy(peer_info.peer_addr,this->config.address_rimocon,6);
+    memcpy(peer_info.peer_addr,this->config.mac_peer,6);
     peer_info.channel = 0;
     peer_info.encrypt = false;
     if(esp_now_add_peer(&peer_info) != ESP_OK) return false;
@@ -206,7 +217,7 @@ public:
    * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
    */
   void send(){
-    esp_now_send(this->config.address_rimocon, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData));
+    esp_now_send(this->config.mac_peer, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData));
   }
 };
 template <typename InputData, typename OutputData>
