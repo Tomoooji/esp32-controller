@@ -2,22 +2,25 @@
  * @file Controller_I2C.h
  * @brief I2Cで構造体をやりとりするライブラリ
  * 
- * @author Tomoooji
- * @date 2026-07-24
+ * @author Tomoooji (https://github.com/Tomoooji)
+ * @date 2026-07-25
  * @copyright Copyright (c) 2026
  * 
  * @attention Slave側にはC++17以降でないと動かないコードが含まれます。
  * @note 基本的に機体側はMasterとして運用、Slaveは一旦放置！
  */
 
-#ifdef ESP32
 #pragma once
 
-#include "ESP32_Controller_BaseClass.h"
+#ifdef ESP32
+
+#include <Arduino.h>
 #include <Wire.h>
 
+#include "ESP32_Controller_Base.h"
+
 /*
-struct InputData{
+struct InputData {
   //uint32_t angle;//degree
   //uint32_t dist;
   //uint32_t turn;
@@ -25,7 +28,7 @@ struct InputData{
 */
 
 /**　@brief I2C通信用の設定　*/
-struct Config_I2C_Master{
+struct Config_I2C_Master {
   uint8_t address_slave; //初期値は 0x2A など
   int sda = -1;
   int scl = -1;
@@ -40,7 +43,7 @@ struct Config_I2C_Master{
  * @note 機体側は他のI2C機器との接続がありうるのでMasterとして運用
  */
 template <typename InputData>
-class Controller_I2C_Master : public Controller_Base<Config_I2C_Master,InputData>{
+class Controller_I2C_Master : public Controller_Base<Config_I2C_Master,InputData> {
 private:
 public:
   using Controller_Base<Config_I2C_Master,InputData>::Controller_Base;
@@ -50,11 +53,11 @@ public:
    * @details MasterとしてI2Cを初期化し、結果を返す
    * 
    * @retval ture  初期化成功
-   * @retval false 初期化失敗
+   * @retval false 初期化失敗f
    */
-  bool begin() override{
+  bool begin() override {
     // マスター初期化（アドレス指定しない）
-    return Wire.begin(this->config.sda, this->config.scl, this->config.frequency);
+    return Wire.begin(this->config_.sda, this->config_.scl, this->config_.frequency);
   }
 
   /**
@@ -65,20 +68,20 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool update() override{
+  bool update() override {
     // スレーブからデータを要求
-    Wire.requestFrom(this->config.address_slave, (size_t)sizeof(InputData));
+    Wire.requestFrom(this->config_.address_slave, (size_t)sizeof(InputData));
     
-    if (Wire.available() >= sizeof(InputData)) {
+    if (Wire.available() >= sizeof(InputData))  {
       // 受信バッファから構造体のメモリ領域へ直接バイナリとして読み込む
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->input),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->input_),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
-      for (size_t i = 0; i < sizeof(Robotinput); i++) {
+      for (size_t i = 0; i < sizeof(Robotinput); i++)  {
           bytePtr[i] = Wire.read();
       }*/
       // 残ったゴミデータがあればすべて読み飛ばしてバッファを空にする
-      while(Wire.available() > 0){
+      while(Wire.available() > 0) {
         Wire.read();
       }
       return true;
@@ -101,9 +104,9 @@ using Controller = Controller_I2C_Master<InputData>;
  * @note 機体側は他のI2C機器との接続がありうるのでMasterとして運用
  */
 template <typename InputData, typename OutputData>
-class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData>{
+class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData> {
 private:
-  OutputData& output;
+  OutputData& output_;
 
 public:
   /**
@@ -114,7 +117,7 @@ public:
    * @param output_data 送るデータ(構造体)の参照
    */
   Controller_I2C_Master_Response(Config_I2C_Master& config_data, InputData& input_data, OutputData& output_data):
-  Controller_I2C_Master<InputData>(config_data,input_data),output(output_data){}
+  Controller_I2C_Master<InputData>(config_data,input_data),output_(output_data) {}
 
   /**
    * @brief 構造体を相手に送る関数
@@ -122,14 +125,14 @@ public:
    * @retval true  送信成功
    * @retval false 送信失敗
    */
-  bool send(){
+  bool send() {
     // マスターがスレーブへデータを送信
-    Wire.beginTransmission(this->config.address);
-    Wire.write(reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData));
+    Wire.beginTransmission(this->config_.address_slave);
+    Wire.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
     return Wire.endTransmission() == 0;
   }
 };
-template <typename InputData,OutputData>
+template <typename InputData,typename OutputData>
 using Controller_Response = Controller_I2C_Master_Response<InputData,OutputData>;
 
 
@@ -138,7 +141,7 @@ using Controller_Response = Controller_I2C_Master_Response<InputData,OutputData>
 // ============================================
 
 /*
-volatile struct InputData{
+volatile struct InputData {
   //uint32_t angle;//degree
   //uint32_t dist;
   //uint32_t turn;
@@ -146,7 +149,7 @@ volatile struct InputData{
 */
 
 /** @brief I2C通信用の設定(スレーブ用) */
-struct Config_I2C_Slave{
+struct Config_I2C_Slave {
   uint8_t address;
   int sda = -1;
   int scl = -1;
@@ -161,7 +164,7 @@ struct Config_I2C_Slave{
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData>{
+class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData> {
 private:
   inline static Controller_I2C_Slave *_instance = nullptr; //!< C++17以上でないと使えない
   
@@ -172,19 +175,19 @@ private:
    * 
    * @param size 受け取ったデータのサイズ?
    */
-  static void static_recv_cb(int size){
-    if(_instance == nullptr) return;
-    if(size >= sizeof(InputData)){
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->input),sizeof(InputData));
+  static void static_recv_cb(int size) {
+    if (_instance == nullptr) return;
+    if (size >= sizeof(InputData)) {
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
       for (size_t i = 0; i < sizeof(Robotinput); i++) {
           bytePtr[i] = Wire.read();
       }*/
-      while(Wire.available() > 0){
+      while(Wire.available() > 0) {
         Wire.read();
       }
-      _instance->config.receive_new = true;
+      _instance->config_.receive_new = true;
     }
   }
 
@@ -198,9 +201,9 @@ public:
    * @retval ture  初期化成功
    * @retval false 初期化失敗
    */
-  bool begin() override{
+  bool begin() override {
     // スレーブ初期化（アドレス指定）
-    Wire.begin(this->config.address, this->config.sda, this->config.scl);
+    Wire.begin(this->config_.address, this->config_.sda, this->config_.scl);
     _instance = this;
     Wire.onReceive(static_recv_cb);
     return true;
@@ -213,9 +216,9 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool update() override{
-    if(this->config.receive_new){
-      this->config.receive_new = false;
+  bool update() override {
+    if (this->config_.receive_new) {
+      this->config_.receive_new = false;
       return true;
     }
     return false;
@@ -225,7 +228,7 @@ public:
 //////////////////
 
 /** @brief I2C通信用の設定(スレーブ、送受信用) */
-struct Config_I2C_Slave_Response{
+struct Config_I2C_Slave_Response {
   uint8_t address; //初期値は 0x2A など
   int sda = -1;
   int scl = -1;
@@ -245,28 +248,28 @@ struct Config_I2C_Slave_Response{
  * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutputData>
-class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response>{
+class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response> {
 private:
-  OutputData& output;
+  OutputData& output_;
   inline static Controller_I2C_Slave_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数(流用)
    * @see Controller_I2C_Slave::static_recv_cb
    */
-  static void static_recv_cb(int size){
-    if(_instance == nullptr) return;
-    if(size >= sizeof(InputData)){
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&this->input),sizeof(InputData));
+  static void static_recv_cb(int size) {
+    if (_instance == nullptr) return;
+    if (size >= sizeof(InputData)) {
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
       for (size_t i = 0; i < sizeof(Robotinput); i++) {
           bytePtr[i] = Wire.read();
       }*/
-      while(Wire.available() > 0){
+      while(Wire.available() > 0) {
         Wire.read();
       }
-      _instance->config.receive_new = true;
+      _instance->config_.receive_new = true;
     }
   }
 
@@ -274,9 +277,9 @@ private:
    * @brief リクエスト受信時のコールバック関数
    * @details Masterからのリクエストに応じてデータを送信
    */
-  static void static_request_cb(){
-    if(_instance == nullptr) return;
-    _instance->config.send_success = Wire.write(reinterpret_cast<uint8_t*>(&_instance->output), sizeof(OutputData)) == sizeof(OutputData);
+  static void static_request_cb() {
+    if (_instance == nullptr) return;
+    _instance->config_.send_success = Wire.write(reinterpret_cast<uint8_t*>(&_instance->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
 
 public:
@@ -289,7 +292,7 @@ public:
    * @param output_data 送るデータ(構造体)の参照
    */
   Controller_I2C_Slave_Response(Config_I2C_Slave_Response& config_data, InputData& input_data, OutputData& output_data):
-    Controller_Base<Config_I2C_Slave_Response,InputData>(config_data,input_data),output(output_data){}
+    Controller_Base<Config_I2C_Slave_Response,InputData>(config_data,input_data),output_(output_data) {}
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -298,9 +301,9 @@ public:
    * @retval ture  初期化成功
    * @retval false 初期化失敗
    */
-  bool begin() override{
+  bool begin() override {
     // スレーブ初期化
-    Wire.begin(this->config.address, this->config.sda, this->config.scl);
+    Wire.begin(this->config_.address, this->config_.sda, this->config_.scl);
     _instance = this;
     Wire.onReceive(static_recv_cb);
     Wire.onRequest(static_request_cb);
@@ -314,9 +317,9 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool update() override{
-    if(this->config.receive_new){
-      this->config.receive_new = false;
+  bool update() override {
+    if (this->config_.receive_new) {
+      this->config_.receive_new = false;
       return true;
     }
     return false;

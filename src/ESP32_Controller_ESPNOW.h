@@ -2,24 +2,26 @@
  * @file Controller_ESPNOW.h
  * @brief ESP-NOWで構造体をやりとりするライブラリ
  * 
- * @author Tomoooji
- * @date 2026-07-24
+ * @author Tomoooji (https://github.com/Tomoooji)
+ * @date 2026-07-25
  * @copyright Copyright (c) 2026
  * 
  * @attention C++17以降でないと動かないコードが含まれます。
  * @attention Arduino Coreのバージョン次第ではコールバック関数のesp_now_recv_info_t*とesp_now_send_info_t*をuint8_t*にする必要がある
  */
-#define ESP32
 
-#ifdef ESP32
 #pragma once
 
-#include "ESP32_Controller_BaseClass.h"
+#ifdef ESP32
+
+#include <Arduino.h>
 #include <esp_now.h>
 #include <WiFi.h>
 
+#include "ESP32_Controller_BaseC.h"
+
 /*
-volatile struct InputData{
+volatile struct InputData {
   //uint32_t angle;//degree
   //uint32_t dist;
   //uint32_t turn;
@@ -27,7 +29,7 @@ volatile struct InputData{
 */
 
 /** @brief ESP-NOW(受信only)用設定 */
-struct Config_ESPNOW{
+struct Config_ESPNOW {
   volatile bool receive_new = false; ///< 値の更新フラグ
 };
 
@@ -38,7 +40,7 @@ struct Config_ESPNOW{
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData>{
+class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData> {
 
 private:
 
@@ -53,10 +55,10 @@ private:
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
    */
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
-    if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
-    memcpy(&_instance->input, data, sizeof(InputData));
-    _instance->config.receive_new = true;
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
+    if (_instance == nullptr || _instance->config_.receive_new || sizeof(InputData) != len) return;
+    memcpy(&_instance->input_, data, sizeof(InputData));
+    _instance->config_.receive_new = true;
   }
 
 public:
@@ -70,10 +72,10 @@ public:
    * @retval ture  初期化成功
    * @retval false 初期化失敗
    */
-  bool begin() override{
+  bool begin() override {
     // WiFiモード設定 stationの略?
     WiFi.mode(WIFI_STA);
-    if(esp_now_init() != ESP_OK) return false;
+    if (esp_now_init() != ESP_OK) return false;
     // コールバック関数登録 static関数なので複数インスタンス作るとバグる
     _instance = this;
     esp_now_register_recv_cb(static_recv_cb);
@@ -88,9 +90,9 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool update() override{
-    if(this->config.receive_new){
-      this->config.receive_new = false;
+  bool update() override {
+    if (this->config_.receive_new) {
+      this->config_.receive_new = false;
       return true;
     }
     return false;
@@ -105,14 +107,14 @@ using Controller = Controller_ESPNOW<InputData>;
  * @brief ESP-NOW(送受信)用設定
  * @code 
  *   // ~C++17
- *   Config_ESPNOW_Response config{{0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E}};
+ *   Config_ESPNOW_Response config{ {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E} };
  *   // C++20以降は指示付き初期化子が使える
  *   Config_ESPNOW_Response config{
  *      .mac_peer = {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E};
  *   }
  * @endcode
  */
-struct Config_ESPNOW_Response{
+struct Config_ESPNOW_Response {
   const uint8_t* mac_peer;
   volatile bool receive_new = false;
   volatile bool send_success = false;
@@ -129,11 +131,11 @@ struct Config_ESPNOW_Response{
  * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutputData>
-class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData>{
+class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData> {
 
 private:
 
-  OutputData& output;
+  OutputData& output_;
 
   inline static Controller_ESPNOW_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
@@ -141,10 +143,10 @@ private:
    * @brief 受信時のコールバック関数(流用)
    * @see Controller_ESPNOW::static_recv_cb
    */
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len){
-    if(_instance == nullptr || _instance->config.receive_new || sizeof(InputData) != len) return;
-    memcpy(&_instance->input, data, sizeof(InputData));
-    _instance->config.receive_new = true;
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
+    if (_instance == nullptr || _instance->config_.receive_new || sizeof(InputData) != len) return;
+    memcpy(&_instance->input_, data, sizeof(InputData));
+    _instance->config_.receive_new = true;
   }
 
   /**
@@ -154,9 +156,9 @@ private:
    * @param info (Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param flag idk
    */
-  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag){
-    if(_instance == nullptr) return;
-    _instance->config.send_success = (flag == ESP_NOW_SEND_SUCCESS);
+  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag) {
+    if (_instance == nullptr) return;
+    _instance->config_.send_success = (flag == ESP_NOW_SEND_SUCCESS);
   }
 
 public:
@@ -169,7 +171,7 @@ public:
    * @param output_data 送るデータ(構造体)の参照
    */
   Controller_ESPNOW_Response(Config_ESPNOW_Response& config_data, InputData& input_data, OutputData& output_data):
-  Controller_Base<Config_ESPNOW_Response,InputData>(config_data,input_data),output(output_data){}
+  Controller_Base<Config_ESPNOW_Response,InputData>(config_data,input_data),output_(output_data) {}
   
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -179,16 +181,16 @@ public:
    * @retval true  初期化成功
    * @retval false 初期化失敗
    */
-  bool begin() override{
+  bool begin() override {
     WiFi.mode(WIFI_STA);
-    if(esp_now_init() != ESP_OK) return false;
+    if (esp_now_init() != ESP_OK) return false;
       
     esp_now_peer_info_t peer_info;
     memset(&peer_info,0,sizeof(peer_info));
-    memcpy(peer_info.peer_addr,this->config.mac_peer,6);
+    memcpy(peer_info.peer_addr,this->config_.mac_peer,6);
     peer_info.channel = 0;
     peer_info.encrypt = false;
-    if(esp_now_add_peer(&peer_info) != ESP_OK) return false;
+    if (esp_now_add_peer(&peer_info) != ESP_OK) return false;
     
     _instance = this;
     esp_now_register_recv_cb(static_recv_cb);
@@ -204,9 +206,9 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool update() override{
-    if(this->config.receive_new){
-      this->config.receive_new = false;
+  bool update() override {
+    if (this->config_.receive_new) {
+      this->config_.receive_new = false;
       return true;
     }
     return false;
@@ -216,8 +218,8 @@ public:
    * @brief 構造体を相手に送る関数
    * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
    */
-  void send(){
-    esp_now_send(this->config.mac_peer, reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData));
+  void send() {
+    esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
   }
 };
 template <typename InputData, typename OutputData>

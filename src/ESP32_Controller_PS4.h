@@ -3,20 +3,24 @@
  * @brief PS4コントローラー(DualShock4)からBluetoothで入力値を受け取るライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-23
+ * @date 2026-07-25
  * @copyright Copyright (c) 2026
  * 
  * @note 結構無理くりラップしてるので他クラスとの互換性が不要ならそのまま使うことを推奨します。
  */
 
-#ifdef ESP32
 #pragma once
 
-#include "ESP32_Controller_BaseClass.h"
+#ifdef ESP32
+
+#include <Arduino.h>
+
 #include <PS4Controller.h>
 
+#include "ESP32_Controller_Base.h"
+
 /*
-struct Input_PS4{
+struct Input_PS4 {
   void apply();
 };
 */
@@ -32,9 +36,9 @@ struct Input_PS4{
  * @endcode
  * @note MACアドレスなしで初期化するとESP32のMACアドレスが使われる。
  */
-struct Config_PS4{
+struct Config_PS4 {
   const char* mac;
-  Config_PS4(const char* mac = nullptr):mac(mac){}
+  Config_PS4(const char* mac = nullptr):mac(mac) {}
   // C++20以上なら const char* mac = nullptr; だけで良い
 };
 
@@ -45,7 +49,7 @@ struct Config_PS4{
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
 template <typename InputData>
-class Controller_PS4 :public Controller_Base<Config_PS4,InputData>{
+class Controller_PS4 :public Controller_Base<Config_PS4,InputData> {
 public:
   using Controller_Base<Config_PS4,InputData>::Controller_Base;
   
@@ -55,8 +59,8 @@ public:
    * @retval true  初期化成功
    * @retval false 初期化失敗
    */
-  bool begin() override{
-    return PS4.begin(this->config.mac);
+  bool begin() override {
+    return PS4.begin(this->config_.mac);
   }
 
   /**
@@ -66,9 +70,9 @@ public:
    * @retval true  コントローラーと接続中
    * @retval false コントローラーと接続していない
    */
-  bool update() override{
-    if(PS4.isConnected()){
-      this->input.apply();
+  bool update() override {
+    if (PS4.isConnected()) {
+      this->input_.apply();
       return true;
     }
     return false;

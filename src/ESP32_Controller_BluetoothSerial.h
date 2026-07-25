@@ -3,20 +3,23 @@
  * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-24
+ * @date 2026-07-25
  * @copyright Copyright (c) 2026
  * 
  * @note 
  */
 
-#ifdef ESP32
 #pragma once
 
-#include "ESP32_Controller_BaseClass.h"
+#ifdef ESP32
+
+#include <Arduino.h>
 #include <BluetoothSerial.h>
 
+#include "ESP32_Controller_Base.h"
+
 /*
-struct InputData{
+struct InputData {
   //uint32_t angle;//degree
   //uint32_t dist;
   //uint32_t turn;
@@ -24,7 +27,7 @@ struct InputData{
 */
 
 /** @brief BluetoothSerial用設定 */
-struct Config_BluetoothSerial{
+struct Config_BluetoothSerial {
   const char* device_name = "ESP32_BT";
   uint32_t baud_rate = 115200;
 };
@@ -36,7 +39,7 @@ struct Config_BluetoothSerial{
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData>{
+class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData> {
 public:
 
   using Controller_Base<Config_BluetoothSerial,InputData>::Controller_Base;
@@ -48,8 +51,8 @@ public:
    * @retval ture  初期化成功
    * @retval false 初期化失敗
    */
-  bool begin() override{
-    return BluetoothSerial.begin(this->config.device_name);
+  bool begin() override {
+    return BluetoothSerial.begin(this->config_.device_name);
   }
 
   /**
@@ -59,12 +62,12 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool update() override{
-    if(BluetoothSerial.available() >= sizeof(InputData)){
-      BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->input), sizeof(InputData));
+  bool update() override {
+    if (BluetoothSerial.available() >= sizeof(InputData)) {
+      BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->input_), sizeof(InputData));
       
       // 残ったゴミデータがあればすべて読み飛ばす
-      while(BluetoothSerial.available() > 0){
+      while(BluetoothSerial.available() > 0) {
         BluetoothSerial.read();
       }
       return true;
@@ -85,10 +88,10 @@ using Controller = Controller_BluetoothSerial<InputData>;
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
-class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData>{
+class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData> {
 
 private:
-  OutputData& outpuy;
+  OutputData& output_;
 
 public:
 
@@ -100,7 +103,7 @@ public:
    * @param output_data 送るデータ(構造体)の参照
    */
   Controller_BluetoothSerial_Response(Config_BluetoothSerial& config_data, InputData& input_data, OutputData& output_data):
-    Controller_BluetoothSerial<InputData>(config_data,input_data),output(output_data){}
+    Controller_BluetoothSerial<InputData>(config_data,input_data),output_(output_data) {}
 
   /**
    * @brief 構造体を相手に送る関数
@@ -108,12 +111,12 @@ public:
    * @retval true  送信成功
    * @retval false 送信失敗
    */
-  bool send(){
-    return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData)) == sizeof(OutputData);
+  bool send() {
+    return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 
-template <typename InputData,OutputData>
-using Controller_Response = Controller_BlutoothSerial_Response<InputData,OutputData>;
+template <typename InputData,typename OutputData>
+using Controller_Response = Controller_BluetoothSerial_Response<InputData,OutputData>;
 
 #endif

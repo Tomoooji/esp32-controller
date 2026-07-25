@@ -3,19 +3,22 @@
  * @brief シリアル通信(UART)で構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-24
+ * @date 2026-07-25
  * @copyright Copyright (c) 2026
  * 
  * @note 
  */
 
-#ifdef ESP32
 #pragma once
 
-#include "ESP32_Controller_BaseClass.h"
+#ifdef ESP32
+
+#include <Arduino.h>
+
+#include "ESP32_Controller_Base.h"
 
 /*
-struct InputData{
+struct InputData {
   //uint32_t angle;//degree
   //uint32_t dist;
   //uint32_t turn;
@@ -23,7 +26,7 @@ struct InputData{
 */
 
 /** @brief シリアル通信(UART)の設定 */
-struct Config_Serial{
+struct Config_Serial {
   int baudrate = 115200;
   int Rx = -1;
   int Tx = -1;
@@ -36,10 +39,10 @@ struct Config_Serial{
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class Controller_Serial : public Controller_Base<Config_Serial,InputData>{
+class Controller_Serial : public Controller_Base<Config_Serial,InputData> {
 
 private:
-  HardwareSerial& SER;
+  HardwareSerial& serial_;
 
 public:
 
@@ -51,7 +54,7 @@ public:
    * @param input_data 受け取るデータ(構造体)の参照
    */
   Controller_Serial(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data):
-    Controller_Base<Config_Serial,InputData>(config_data,input_data),SER(serial){}
+    Controller_Base<Config_Serial,InputData>(config_data,input_data),serial_(serial) {}
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -60,9 +63,9 @@ public:
    * @retval false 初期化失敗
    * @note SERIAL_8N1 = 8ビット、パリティなし、ストップビット1（8N1）
    */
-  bool begin() override{
-    this->SER.begin(this->config.baudrate, SERIAL_8N1, this->config.Rx, this->config.Tx);
-    return this->SER;
+  bool begin() override {
+    this->serial_.begin(this->config_.baudrate, SERIAL_8N1, this->config_.Rx, this->config_.Tx);
+    return this->serial_;
   }
 
   /**
@@ -72,11 +75,11 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool update() override{
-    if(this->SER.available() >= sizeof(InputData)){
-      this->SER.readBytes(reinterpret_cast<uint8_t*>(&this->input), sizeof(InputData));
-      while(this->SER.available() > 0){
-        this->SER.read();
+  bool update() override {
+    if (this->serial_.available() >= sizeof(InputData)) {
+      this->serial_.readBytes(reinterpret_cast<uint8_t*>(&this->input_), sizeof(InputData));
+      while(this->serial_.available() > 0) {
+        this->serial_.read();
       }
       return true;
     }
@@ -96,11 +99,11 @@ using Controller = Controller_Serial<InputData>;
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
-class Controller_Serial_Response : public Controller_Serial<InputData>{
+class Controller_Serial_Response : public Controller_Serial<InputData> {
 
 private:
 
-  OutputData& output;
+  OutputData& output_;
 
 public:
 
@@ -113,7 +116,7 @@ public:
    * @param output_data 送るデータ(構造体)の参照
    */
   Controller_Serial_Response(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data, OutputData& output_data):
-    Controller_Serial<InputData>(serial,config_data,input_data),output{output_data}{}
+    Controller_Serial<InputData>(serial,config_data,input_data),output_ {output_data} {}
 
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
@@ -121,8 +124,8 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool send(){
-    return this->SER.write(reinterpret_cast<uint8_t*>(&this->output), sizeof(OutputData)) == sizeof(OutputData);
+  bool send() {
+    return this->serial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 

@@ -26,7 +26,7 @@ esp32-controller/
 │     ├─ serial_rimocon.py          # Raspberry Piから構造体ベースのシリアル通信をするプログラム
 │     └─ ESP32.json                 # 通信用設定ファイル
 ├─ src/
-│  ├─ ESP32_Controller_BaseClass.h  # 基底クラスのヘッダファイル  直接使うことはない
+│  ├─ ESP32_Controller_Base.h       # 基底クラスのヘッダファイル  直接使うことはない
 │  ├─ ESP32_Controller_PS4.h        # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
 │  ├─ ESP32_Controller_Serial.h     # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
 │  ├─ ESP32_Controller_I2C.h        # I2C通信で通信するクラスのヘッダファイル　双方向verもある
@@ -89,8 +89,8 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
 ```mermaid
 classDiagram
     class Controller_Base~ConfigData, InputData~ {
-        # ConfigData& config
-        # InputData& input
+        # ConfigData& config_
+        # InputData& input_
 
         +begin() bool
         +update() bool
@@ -117,8 +117,8 @@ classDiagram
 direction LR
     class Controller_Base~ConfigData, InputData~ {
         <<abstract>>
-        # ConfigData& config
-        # InputData& input
+        # ConfigData& config_
+        # InputData& input_
         +Controller_Base(ConfigData&, InputData&)
         +bool begin()*
         +bool update()*
@@ -132,7 +132,7 @@ direction LR
     }
 
     class Controller_BluetoothSerial_Response~InputData, OutputData~ {
-        -OutputData& output
+        -OutputData& output_
         +bool send()
     }
 
@@ -144,7 +144,7 @@ direction LR
     }
 
     class Controller_ESPNOW_Response~InputData, OutputData~ {
-        -OutputData& output
+        -OutputData& output_
         -static Controller_ESPNOW_Response* _instance
         -static void static_recv_cb(...)
         -static void static_send_cb(...)
@@ -159,13 +159,13 @@ direction LR
     }
 
     class Controller_Serial~InputData~ {
-        -HardwareSerial& SER
+        -HardwareSerial& serial_
         +bool begin()
         +bool update()
     }
 
     class Controller_Serial_Response~InputData, OutputData~ {
-        -OutputData& output
+        -OutputData& output_
         +bool send()
     }
 
@@ -175,7 +175,7 @@ direction LR
     }
 
     class Controller_I2C_Master_Response~InputData, OutputData~ {
-        -OutputData& output
+        -OutputData& output_
         +bool send()
     }
 
@@ -187,7 +187,7 @@ direction LR
     }
 
     class Controller_I2C_Slave_Response~InputData, OutputData~ {
-        -OutputData& output
+        -OutputData& output_
         -static Controller_I2C_Slave_Response* _instance
         -static void static_recv_cb(int)
         -static void static_request_cb()
