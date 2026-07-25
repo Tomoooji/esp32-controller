@@ -59,7 +59,7 @@ public:
   /**
    * @brief setup()で呼ばれる初期化関数
    * 
-   * @retval ture  初期化成功
+   * @retval true  初期化成功
    * @retval false 初期化失敗
    * @note SERIAL_8N1 = 8ビット、パリティなし、ストップビット1（8N1）
    */

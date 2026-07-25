@@ -48,7 +48,7 @@ public:
    * @brief setup()で呼ばれる初期化関数
    * @details 
    * 
-   * @retval ture  初期化成功
+   * @retval true  初期化成功
    * @retval false 初期化失敗
    */
   bool begin() override {

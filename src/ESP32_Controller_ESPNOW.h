@@ -69,7 +69,7 @@ public:
    * @brief setup()で呼ばれる初期化関数
    * @details WiFiのモード設定、ESP_NOWの初期化、コールバック関数の登録を行う
    * 
-   * @retval ture  初期化成功
+   * @retval true  初期化成功
    * @retval false 初期化失敗
    */
   bool begin() override {
