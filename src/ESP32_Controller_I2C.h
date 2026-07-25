@@ -132,7 +132,7 @@ public:
     return Wire.endTransmission() == 0;
   }
 };
-template <typename InputData,typename OutputData>
+template <typename InputData, typename OutputData>
 using Controller_Response = Controller_I2C_Master_Response<InputData,OutputData>;
 
 

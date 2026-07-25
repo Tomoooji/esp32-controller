@@ -116,7 +116,7 @@ public:
   }
 };
 
-template <typename InputData,typename OutputData>
+template <typename InputData, typename OutputData>
 using Controller_Response = Controller_BluetoothSerial_Response<InputData,OutputData>;
 
 /*
