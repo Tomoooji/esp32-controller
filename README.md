@@ -48,40 +48,6 @@ esp32-controller/
 ├─ library.json                     # PlatformIO用
 ├─ LICENSE
 └─ README.md
-
-esp32-controller/
-├─ examples/
-│  ├─ blink_espnow/
-│  ├─ closterium_ps4/
-│  │  └─ closterium_ps4.ino
-│  └─ multi_blink/
-│     ├─ receiver.ino/
-│     │  └─ receiver.ino
-│     ├─ sender_bluetoothserial/
-│     │  └─ sender_bluetoothserial.ino
-│     ├─ sender_espnow/
-│     │  └─ sender_espnow.ino
-│     ├─ sender_i2c/
-│     │  └─ sender_12c.ino
-│     ├─ sender_serial/
-│     │  └─ sender_serial.ino
-│     └─ Button.h
-├─ extras/
-│  └─ serial_rimocon_raspi/
-│     ├─ ESP32.json
-│     └─ serial_rimocon.py
-├─ src/
-│  ├─ ESP32_Controller_Base.h
-│  ├─ ESP32_Controller_BluetoothSerial.h
-│  ├─ ESP32_Controller_ESPNOW.h
-│  ├─ ESP32_Controller_I2C.h
-│  ├─ ESP32_Controller_PS4.h
-│  └─ ESP32_Controller_Serial.h
-├─ library.json
-├─ library.properties
-├─ LICENSE
-└─ README.md
-
 ```
 
 ## 依存関係
