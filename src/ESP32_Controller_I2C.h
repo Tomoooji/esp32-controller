@@ -3,7 +3,7 @@
  * @brief I2Cで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-25
+ * @date 2026-07-26
  * @copyright Copyright (c) 2026
  * 
  * @attention Slave側にはC++17以降でないと動かないコードが含まれます。
