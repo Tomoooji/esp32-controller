@@ -5,13 +5,13 @@
   Config_ESPNOW config;
 #elif SERIAL
   #include <ESP32_Controller_Serial.h>
-  Config_Serial config;
+  Config_Serial config = { .baudrate = 115200, .Rx = 16, .Tx = 17 };
 #elif I2C
   #include <ESP32_Controller_I2C.h>
-  Config_I2C_Master config;
+  Config_I2C_Master config = { .address_slave = 0x2A, .sda = 21, .scl = 22, .frequency = 400000 };
 #elif BLUETOOTH
   #include <ESP32_Controller_BluetoothSerial.h>
-  Config_BluetoothSerial config;
+  Config_BluetoothSerial config = { .device_name = "ESP32_BT", .as_master = false };
 #endif
 
 struct BlinkCommand {

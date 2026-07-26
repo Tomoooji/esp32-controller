@@ -2,7 +2,6 @@
 #include "../Button.h"
 
 BluetoothSerial SerialBT;
-//uint8_t slave_mac[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // 送信先のMACアドレスを指定してください
 const char* slave_name = "ESP32_BT";
 
 Button button1(18);
