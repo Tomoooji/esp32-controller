@@ -35,8 +35,8 @@ void setup() {
 }
 
 void loop() {
-  bool pushed_1 = button1.isPressed();
-  bool pushed_2 = button2.isPressed();
+  bool pushed_1 = button1.isPushed();
+  bool pushed_2 = button2.isPushed();
 
   if (pushed_1 && pushed_2) {
     command.is_on = !command.is_on;

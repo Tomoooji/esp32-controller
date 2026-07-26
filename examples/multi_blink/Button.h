@@ -25,14 +25,14 @@ public:
     pinMode(pin_, INPUT_PULLUP);
   }
 
-  bool isPressed() {
+  bool isPushed() {
     bool current_state = digitalRead(pin_);
     if (current_state != state_) {
       unsigned long current_time = millis();
       if (current_time - last_change_time_ > debounce_time_) {
         state_ = current_state;
-        last_change_time_ = current_time;
         if (state_ == LOW) {
+          last_change_time_ = current_time;
           return true;
         }
       }
