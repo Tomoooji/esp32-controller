@@ -4,7 +4,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
-> 2026-07-27    サンプルスケッチの追加  
+> 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正  
 > 2026-07-25    ファイル名、変数名などの一部改訂など  
 > 2026-07-24    PlatfromIOに対応(一部互換性問題あり)、C++17への後方互換  
 > 2026-07-23    READMEに使用目的の追加、ソースコード内のコメント増補、命名の見直し、クラス図の追加  
@@ -101,8 +101,8 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
 ```mermaid
 classDiagram
     class Controller_Base~ConfigData, InputData~ {
-        # ConfigData& config_
-        # InputData& input_
+        #ConfigData& config_
+        #InputData& input_
 
         +begin() bool
         +update() bool
@@ -129,8 +129,8 @@ classDiagram
 direction LR
     class Controller_Base~ConfigData, InputData~ {
         <<abstract>>
-        # ConfigData& config_
-        # InputData& input_
+        #ConfigData& config_
+        #InputData& input_
         +Controller_Base(ConfigData&, InputData&)
         +bool begin()*
         +bool update()*
@@ -139,6 +139,7 @@ direction LR
     }
 
     class Controller_BluetoothSerial~InputData~ {
+        #BluetoothSerial bluetoothserial_
         +bool begin()
         +bool update()
     }
