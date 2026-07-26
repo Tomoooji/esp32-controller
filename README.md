@@ -4,12 +4,13 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
+> 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正  
 > 2026-07-26    I2C,ESP-NOWにダブルバッファを実装(未検証)  
 > 2026-07-25    ファイル名、変数名などの一部改訂など  
 > 2026-07-24    PlatfromIOに対応(一部互換性問題あり)、C++17への後方互換  
-> 2026-07-23    READMEに使用目的の追加、ソースコード内のコメント増補、命名の見直し、クラス図の追加
-> 2026-07-18    BluetoothSerial対応、Doxygen形式コメントの追加、I2CのデフォルトをMasterに変更
-> 2026-07-15    初期Verの公開
+> 2026-07-23    READMEに使用目的の追加、ソースコード内のコメント増補、命名の見直し、クラス図の追加  
+> 2026-07-18    BluetoothSerial対応、Doxygen形式コメントの追加、I2CのデフォルトをMasterに変更  
+> 2026-07-15    初期Verの公開  
 
 ## 使用目的
 
@@ -19,10 +20,20 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 ```
 esp32-controller/
 ├─ examples/
-│  ├─ blink_espnow/
-│  │  └─ blink_espnow_receiver.ino  # ESP-NOW経由でLEDを付けたり消したりするサンプル
-│  └─ closterium_ps4/
-│     └─ closterium_ps4.ino         # ロッカーボギー機構がついた6輪ロボットをPS4コントローラーで動かすサンプル
+│  ├─ closterium_ps4/
+│  │  └─ closterium_ps4.ino         # ロッカーボギー機構がついた6輪ロボットをPS4コントローラーで動かすサンプル
+│  └─ multi_blink/
+│     ├─ receiver.ino/
+│     │  └─ receiver.ino            # 接続先のESP32から入力を受け取ってLEDを制御するサンプル
+│     ├─ sender_bluetoothserial/
+│     │  └─ sender_bluetoothserial.ino # Bluetoothで送信するサンプル
+│     ├─ sender_espnow/
+│     │  └─ sender_espnow.ino       # ESP-NOWで送信するサンプル
+│     ├─ sender_i2c/
+│     │  └─ sender_12c.ino          # I2C通信で送信するサンプル
+│     ├─ sender_serial/
+│     │  └─ sender_serial.ino       # シリアル通信で送信するサンプル
+│     └─ Button.h                   # 送信側でボタン入力をイベント化する共通クラス
 ├─ extras/
 │  └─ serial_rimocon_raspi/
 │     ├─ serial_rimocon.py          # Raspberry Piから構造体ベースのシリアル通信をするプログラム
@@ -91,8 +102,8 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
 ```mermaid
 classDiagram
     class Controller_Base~ConfigData, InputData~ {
-        # ConfigData& config_
-        # InputData& input_
+        #ConfigData& config_
+        #InputData& input_
 
         +begin() bool
         +update() bool
@@ -119,8 +130,8 @@ classDiagram
 direction LR
     class Controller_Base~ConfigData, InputData~ {
         <<abstract>>
-        # ConfigData& config_
-        # InputData& input_
+        #ConfigData& config_
+        #InputData& input_
         +Controller_Base(ConfigData&, InputData&)
         +bool begin()*
         +bool update()*
@@ -129,6 +140,7 @@ direction LR
     }
 
     class Controller_BluetoothSerial~InputData~ {
+        #BluetoothSerial bluetoothserial_
         +bool begin()
         +bool update()
     }
@@ -235,4 +247,4 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 ---
 
 作成者:Tomoooji  
-最終更新:2026-07-26  
+最終更新:2026-07-27  

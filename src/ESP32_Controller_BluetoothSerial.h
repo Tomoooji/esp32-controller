@@ -3,10 +3,10 @@
  * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-25
+ * @date 2026-07-27
  * @copyright Copyright (c) 2026
  * 
- * @note 
+ * @todo SPPまわり
  */
 
 #pragma once
@@ -29,7 +29,7 @@ struct InputData {
 /** @brief BluetoothSerial用設定 */
 struct Config_BluetoothSerial {
   const char* device_name = "ESP32_BT";
-  uint32_t baud_rate = 115200;
+  bool as_master = false; ///< trueならマスター、falseならスレーブ
 };
 
 /**
@@ -40,19 +40,27 @@ struct Config_BluetoothSerial {
  */
 template <typename InputData>
 class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData> {
-public:
 
+protected:
+  SerialBluetooth bluetoothserial_;
+
+public:
   using Controller_Base<Config_BluetoothSerial,InputData>::Controller_Base;
 
   /**
    * @brief setup()で呼ばれる初期化関数
-   * @details 
+   * @details マスターの場合はデバイス名で接続を試みる
    * 
    * @retval true  初期化成功
    * @retval false 初期化失敗
    */
   bool begin() override {
-    return BluetoothSerial.begin(this->config_.device_name);
+    if (!this->bluetoothserial_.begin(this->config_.device_name, this->config_.as_master)) return false;
+    if (this->config_.as_master) {
+      this->bluetoothserial_.connect(this->config_.device_name);
+      return this->bluetoothserial_.connected();
+    }
+    return true;
   }
 
   /**
@@ -63,12 +71,10 @@ public:
    * @retval false 更新なし
    */
   bool update() override {
-    if (BluetoothSerial.available() >= sizeof(InputData)) {
-      BluetoothSerial.readBytes(reinterpret_cast<uint8_t*>(&this->input_), sizeof(InputData));
-      
-      // 残ったゴミデータがあればすべて読み飛ばす
-      while(BluetoothSerial.available() > 0) {
-        BluetoothSerial.read();
+    if (this->bluetoothserial_.available() >= sizeof(InputData)) {
+      this->bluetoothserial_.readBytes(reinterpret_cast<uint8_t*>(&this->input_), sizeof(InputData));
+      while(this->bluetoothserial_.available() > 0) {
+        this->bluetoothserial_.read();
       }
       return true;
     }
@@ -112,50 +118,11 @@ public:
    * @retval false 送信失敗
    */
   bool send() {
-    return BluetoothSerial.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
+    return this->bluetoothserial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 
 template <typename InputData, typename OutputData>
 using Controller_Response = Controller_BluetoothSerial_Response<InputData,OutputData>;
-
-/*
-#include "BluetoothSerial.h"
-
-BluetoothSerial SerialBT;
-
-// 接続先（スレーブ側）のMACアドレスをここに正確に入力します
-uint8_t slaveAddress[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}; 
-
-void setup() {
-  Serial.begin(115200);
-  
-  // マスター側として初期化（第2引数をtrueにするとマスターモードになります）
-  SerialBT.begin("ESP32_Master", true); 
-  Serial.println("マスター起動。スレーブに接続を試みます...");
-
-  // MACアドレスを指定して接続
-  if (SerialBT.connect(slaveAddress)) {
-    Serial.println("接続成功！");
-  } else {
-    Serial.println("接続失敗。スレーブが起動しているか確認してください。");
-    // 接続できるまでリトライし続ける場合は、ここでループさせる処理などを入れます
-  }
-}
-
-void loop() {
-  // スレーブへデータを送信（1秒ごとに「Hello」を送信）
-  if (SerialBT.connected()) {
-    SerialBT.println("Hello");
-    Serial.println("データを送信しました: Hello");
-    delay(1000);
-  }
-  
-  // スレーブからデータが届いたらシリアルモニタに表示
-  while (SerialBT.available()) {
-    Serial.write(SerialBT.read());
-  }
-}
-*/
 
 #endif
