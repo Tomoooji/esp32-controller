@@ -275,4 +275,4 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 ---
 
 作成者:Tomoooji  
-最終更新:2026-07-24  
+最終更新:2026-07-27  
