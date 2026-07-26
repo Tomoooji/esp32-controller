@@ -3,7 +3,7 @@
  * @brief ESP-NOWで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-25
+ * @date 2026-07-26
  * @copyright Copyright (c) 2026
  * 
  * @attention C++17以降でないと動かないコードが含まれます。
@@ -43,7 +43,8 @@ template <typename InputData>
 class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData> {
 
 private:
-
+  portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
+  volatile InputData input_buffer_; 
   inline static Controller_ESPNOW *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
@@ -57,7 +58,7 @@ private:
    */
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
     if (_instance == nullptr || _instance->config_.receive_new || sizeof(InputData) != len) return;
-    memcpy(&_instance->input_, data, sizeof(InputData));
+    memcpy(&_instance->input_buffer_, data, sizeof(InputData));
     _instance->config_.receive_new = true;
   }
 
@@ -92,7 +93,13 @@ public:
    */
   bool update() override {
     if (this->config_.receive_new) {
+      
+      portENTER_CRITICAL(&this->recv_mux);
+      // ここに巨大な処理を入れると大変だけどそもそもESP-NOWが扱えるデータ量(250バイト)的にmemcpyしてもそんなに重たくない...はず
+      memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
       this->config_.receive_new = false;
+      portEXIT_CRITICAL(&this->recv_mux);
+      
       return true;
     }
     return false;
@@ -134,9 +141,9 @@ template <typename InputData, typename OutputData>
 class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData> {
 
 private:
-
   OutputData& output_;
-
+  portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
+  volatile InputData input_buffer_; 
   inline static Controller_ESPNOW_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
@@ -145,7 +152,7 @@ private:
    */
   static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
     if (_instance == nullptr || _instance->config_.receive_new || sizeof(InputData) != len) return;
-    memcpy(&_instance->input_, data, sizeof(InputData));
+    memcpy(&_instance->input_buffer_, data, sizeof(InputData));
     _instance->config_.receive_new = true;
   }
 
@@ -208,7 +215,13 @@ public:
    */
   bool update() override {
     if (this->config_.receive_new) {
+      
+      portENTER_CRITICAL(&this->recv_mux);
+      // ここに巨大な処理を入れると大変だけどそもそもESP-NOWが扱えるデータ量(250バイト)的にmemcpyしてもそんなに重たくない...はず
+      memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
       this->config_.receive_new = false;
+      portEXIT_CRITICAL(&this->recv_mux);
+      
       return true;
     }
     return false;
