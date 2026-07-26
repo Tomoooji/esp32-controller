@@ -3,7 +3,7 @@
  * @brief I2Cで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-25
+ * @date 2026-07-26
  * @copyright Copyright (c) 2026
  * 
  * @attention Slave側にはC++17以降でないと動かないコードが含まれます。
@@ -166,19 +166,21 @@ struct Config_I2C_Slave {
 template <typename InputData>
 class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData> {
 private:
+  portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
+  volatile InputData input_buffer_; 
   inline static Controller_I2C_Slave *_instance = nullptr; //!< C++17以上でないと使えない
   
   /**
-  /**
    * @brief 受信時のコールバック関数
-   * @details 受け取ったデータをinputにコピーし、configの新規受信フラグを立てる
+   * @details 受け取ったデータをinput_buffer_にコピーし、configの新規受信フラグを立てる
    * 
-   * @param size 受け取ったデータのサイズ?
+   * @param size 受け取ったデータのサイズ
+   * @see Controller_I2C_Slave_Response::static_recv_cb
    */
   static void static_recv_cb(int size) {
     if (_instance == nullptr) return;
     if (size >= sizeof(InputData)) {
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_buffer_),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
       for (size_t i = 0; i < sizeof(Robotinput); i++) {
@@ -211,14 +213,25 @@ public:
 
   /**
    * @brief loop()内で呼ばれる値の更新(のチェック)を行う関数
-   * @details 値の更新自体はコールバック関数がやってくれるのでフラグ管理のみ
+   * @details コールバック関数が更新してくれたinput_buffer_からinput_にコピーし、フラグを倒す。
    * 
    * @retval true  更新あり
    * @retval false 更新なし
+   * @note コピーしてる間はCritical Sectionでコールバック関数を止めている。
+   * @see Controller_I2C_Slave_Response::update
    */
   bool update() override {
     if (this->config_.receive_new) {
+
+      // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
+      // ↓ onReceiveに渡すコールバック関数内でxPortIsrContext()を実行してtrueだったらそっちに変えてくださいな
+      portENTER_CRITICAL(&this->recv_mux);
+      // ここに巨大な処理を入れると大変なのでInputDataは控えめなサイズにする
+      memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
       this->config_.receive_new = false;
+      // ↓ こちらも同じく。I2Cの受信コールバックがISRならそれ用に_ISRつけたやつを呼ぶ必要がある。
+      portEXIT_CRITICAL(&this->recv_mux);
+
       return true;
     }
     return false;
@@ -250,17 +263,22 @@ struct Config_I2C_Slave_Response {
 template <typename InputData, typename OutputData>
 class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response> {
 private:
+  portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
+  volatile InputData input_buffer_; 
   OutputData& output_;
   inline static Controller_I2C_Slave_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数(流用)
+   * @details 受け取ったデータをinput_buffer_にコピーし、configの新規受信フラグを立てる
+   * 
+   * @param size 受け取ったデータのサイズ
    * @see Controller_I2C_Slave::static_recv_cb
    */
   static void static_recv_cb(int size) {
     if (_instance == nullptr) return;
     if (size >= sizeof(InputData)) {
-      Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_),sizeof(InputData));
+      Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_buffer_),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
       for (size_t i = 0; i < sizeof(Robotinput); i++) {
@@ -311,15 +329,26 @@ public:
   }
 
   /**
-   * @brief loop()内で呼ばれる値の更新(のチェック)を行う関数
-   * @details 値の更新自体はコールバック関数がやってくれるのでフラグ管理のみ
+   * @brief loop()内で呼ばれる値の更新(のチェック)を行う関数(流用)
+   * @details コールバック関数が更新してくれたinput_buffer_からinput_にコピーし、フラグを倒す。
    * 
    * @retval true  更新あり
    * @retval false 更新なし
+   * @note コピーしてる間はCritical Sectionでコールバック関数を止めている。
+   * @see Controller_I2C_Slave::update
    */
   bool update() override {
     if (this->config_.receive_new) {
+
+      // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
+      // ↓ onReceiveに渡すコールバック関数内でxPortIsrContext()を実行してtrueだったらそっちに変えてくださいな
+      portENTER_CRITICAL(&this->recv_mux);
+      // ここに巨大な処理を入れると大変なのでInputDataは控えめなサイズにする
+      memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
       this->config_.receive_new = false;
+      // ↓ こちらも同じく。I2Cの受信コールバックがISRならそれ用に_ISRつけたやつを呼ぶ必要がある。
+      portEXIT_CRITICAL(&this->recv_mux);
+
       return true;
     }
     return false;

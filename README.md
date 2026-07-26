@@ -5,6 +5,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 > ## 変更履歴
 >
 > 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正  
+> 2026-07-26    I2C,ESP-NOWにダブルバッファを実装(未検証)  
 > 2026-07-25    ファイル名、変数名などの一部改訂など  
 > 2026-07-24    PlatfromIOに対応(一部互換性問題あり)、C++17への後方互換  
 > 2026-07-23    READMEに使用目的の追加、ソースコード内のコメント増補、命名の見直し、クラス図の追加  
@@ -150,6 +151,7 @@ direction LR
     }
 
     class Controller_ESPNOW~InputData~ {
+        -InputData& input_buffer_
         -static Controller_ESPNOW* _instance
         -static void static_recv_cb(...)
         +bool begin()
@@ -157,6 +159,7 @@ direction LR
     }
 
     class Controller_ESPNOW_Response~InputData, OutputData~ {
+        -InputData& input_buffer_
         -OutputData& output_
         -static Controller_ESPNOW_Response* _instance
         -static void static_recv_cb(...)
@@ -193,6 +196,7 @@ direction LR
     }
 
     class Controller_I2C_Slave~InputData~ {
+        -InputData& input_buffer_
         -static Controller_I2C_Slave* _instance
         -static void static_recv_cb(int)
         +bool begin()
@@ -200,6 +204,7 @@ direction LR
     }
 
     class Controller_I2C_Slave_Response~InputData, OutputData~ {
+        -InputData& input_buffer_
         -OutputData& output_
         -static Controller_I2C_Slave_Response* _instance
         -static void static_recv_cb(int)
