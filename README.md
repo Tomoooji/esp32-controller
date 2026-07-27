@@ -4,7 +4,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
-> 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正  
+> 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正、READMEに注意点の追加  
 > 2026-07-26    I2C,ESP-NOWにダブルバッファを実装(未検証)  
 > 2026-07-25    ファイル名、変数名などの一部改訂など  
 > 2026-07-24    PlatfromIOに対応(一部互換性問題あり)、C++17への後方互換  
@@ -26,11 +26,11 @@ esp32-controller/
 │     ├─ receiver.ino/
 │     │  └─ receiver.ino            # 接続先のESP32から入力を受け取ってLEDを制御するサンプル
 │     ├─ sender_bluetoothserial/
-│     │  └─ sender_bluetoothserial.ino # Bluetoothで送信するサンプル
+│     │  └─ sender_bluetoothserial.ino # BluetoothClassicで送信するサンプル
 │     ├─ sender_espnow/
 │     │  └─ sender_espnow.ino       # ESP-NOWで送信するサンプル
 │     ├─ sender_i2c/
-│     │  └─ sender_12c.ino          # I2C通信で送信するサンプル
+│     │  └─ sender_i2c.ino          # I2C通信で送信するサンプル
 │     ├─ sender_serial/
 │     │  └─ sender_serial.ino       # シリアル通信で送信するサンプル
 │     └─ Button.h                   # 送信側でボタン入力をイベント化する共通クラス
@@ -44,7 +44,7 @@ esp32-controller/
 │  ├─ ESP32_Controller_Serial.h     # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
 │  ├─ ESP32_Controller_I2C.h        # I2C通信で通信するクラスのヘッダファイル　双方向verもある
 │  ├─ ESP32_Controller_BluetoothSerial.h # Bluetooth Classicで通信するクラスのヘッダファイル　双方向verもある
-│  └─ ESP32_Controller_ESPNOW.h     # ESP-NOWで通信するクラスのヘッダファイル  双方向verもある
+│  └─ ESP32_Controller_ESPNOW.h     # ESP-NOWで通信するクラスのヘッダファイル　双方向verもある
 ├─ library.properties               # ArduinoIDE用
 ├─ library.json                     # PlatformIO用
 ├─ LICENSE
@@ -67,7 +67,7 @@ PlatformIOにも対応した...はず
 platformio.iniに以下を追記してください。  
 ```
 lib_deps = https://github.com/Tomoooji/esp32-controller
-build_flags = -std=gnu++17
+build_flags = -std=gnu++17 // ESP-NOW/I2Cスレーブを使用する場合
 ```
 PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていないためledcAttachやESP-NOWのコールバック関数の引数の型が最新ではないです。適宜旧verに変更して使用してください。
 
@@ -92,6 +92,66 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
    送信成功の可否は ``コントローラーオブジェクト.get_config().send_success``(ESP-NOW)またはsend()の戻り値(それ以外)で参照できます。
 
 ※ 詳細はソースコード内のコメントやexampleフォルダ内のサンプルスケッチを参照してください。
+
+## 注意点
+
+### シリアル通信(UART)
+- ESP32の``Serial``はデフォルトでUSBシリアルに接続されているため、シリアルモニタを使用する場合は別のUART(``Serial2``など)を使用してください。
+- シリアル通信で一度に送信できるデータ量は最大で256バイトです。構造体のサイズが大きい場合は分割して送信する必要があります。
+- SoftwareSerialには対応していません。HardwareSerialを使用してください。
+
+### I2C通信
+- I2C通信で一度に送れるデータ量は最大で32バイトです。構造体のサイズが大きい場合は分割して送信する必要があります。
+
+- Slave側のクラスは初期化時に指定した構造体と同じ構造体を用いて他のオブジェクトを作ることはできません。(ESP-NOWの項目にコード例があります。)
+
+- Slave側のクラスではC++17以降に追加された記法を用いているため、PlatformIOで使用する場合はbuild_flagsに``-std=gnu++17``を追加してください。
+
+
+### Bluetooth Classic通信
+- Bluetooth Classic通信で一度に送れるデータ量は最大で512バイトです。構造体のサイズが大きい場合は分割して送信する必要があります。
+
+### ESP-NOW
+- ESP-NOWで一度に送れるデータ量は最大で250バイトです。構造体のサイズが大きい場合は分割して送信する必要があります。
+
+- ESP-NOWはESP32同士でしか通信できません。ESP32と他のマイコンやPCとの通信はできません。
+
+- Controller_ESPNOWとController_ESPNOW_Responseクラスのオブジェクトは指定した構造体型のセットにつきに1つしか作れません。複数の構造体を送受信する場合は、構造体をまとめた構造体を作るか、ESP-NOWのMACアドレスを変更して複数のオブジェクトを作る必要があります。
+    ``` C++
+    ///////////////////
+
+    // 例えばこんなコードを書いたとして...
+    Config_ESPNOW config;
+
+    struct Input_Comand {
+        ...
+    } __attribute__((__packed__));
+    Input_Command input_command;
+
+    Controller<Input_Command> controller(config, input_command);
+
+    ///////////////////
+
+    // これはバグの原因になります。
+    Input_Command another_command;
+    Controller<Input_Command> another_controller(config, another_command); 
+
+    ///////////////////
+
+    // これは大丈夫
+    struct Input_Comand_another {
+        ...
+    } __attribute__((__packed__));
+    Input_Command another_command;
+
+    Controller<Input_Command> another_controller(config, another_command);
+
+    ```
+- Controller_ESPNOW_Responseクラスのsend()関数は送信完了を待たずに戻るため、送信完了を確認するにはコールバック関数で送信結果を確認する必要があります。
+
+- 送受信時のコールバック関数の第一引数はESP32-Arduinoのバージョンによって型が変わるため、適宜変更してください。ESP32-Arduino 3.xでは``const esp_now_recv_info_t *info``ですが、2.xでは``const uint8_t *mac_addr``です。
+
+- C++17以降に追加された記法を用いているため、PlatformIOで使用する場合はbuild_flagsに``-std=gnu++17``を追加してください。
 
 ## クラス図
 
