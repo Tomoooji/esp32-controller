@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include "../blink_command.h"
 #include "../Button.h"
 
 uint8_t address = 0x2A;
@@ -6,10 +7,6 @@ uint8_t address = 0x2A;
 Button button1(18);
 Button button2(19);
 
-struct BlinkCommand {
-  bool is_on;
-  int power;
-} __attribute__((__packed__));
 volatile BlinkCommand command;
 
 void sendCommand() {

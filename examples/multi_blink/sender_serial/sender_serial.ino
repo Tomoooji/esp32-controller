@@ -1,13 +1,10 @@
+#include "../blink_command.h"
 #include "../Button.h"
 
 Button button1(18);
 Button button2(19);
 
-struct BlinkCommand {
-  bool is_on;
-  int power;
-} __attribute__((__packed__)) command;
-
+BlinkCommand command;
 
 void setup() {
   Serial.begin(115200);
