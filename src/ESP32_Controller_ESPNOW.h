@@ -45,7 +45,7 @@ class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData> {
 
 private:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
-  volatile InputData input_buffer_; 
+  InputData input_buffer_; 
   inline static Controller_ESPNOW *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
@@ -58,10 +58,12 @@ private:
    * @param len  受け取ったデータのサイズ
    * @see Controller_ESPNOW::static_recv_cb
    */
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
+  static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len) {
     if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
+    portENTER_CRITICAL(&_instance->recv_mux);
     memcpy(&_instance->input_buffer_, data, sizeof(InputData));
     _instance->config_.receive_new = true;
+    portEXIT_CRITICAL(&_instance->recv_mux);
   }
 
 public:
@@ -147,7 +149,7 @@ class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,
 private:
   OutputData& output_;
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
-  volatile InputData input_buffer_; 
+  InputData input_buffer_;
   inline static Controller_ESPNOW_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
@@ -160,10 +162,12 @@ private:
    * @param len  受け取ったデータのサイズ
    * @see Controller_ESPNOW::static_recv_cb
    */
-  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
+  static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len) {
     if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
+    portENTER_CRITICAL(&_instance->recv_mux);
     memcpy(&_instance->input_buffer_, data, sizeof(InputData));
     _instance->config_.receive_new = true;
+    portEXIT_CRITICAL(&_instance->recv_mux);
   }
 
   /**
@@ -173,7 +177,7 @@ private:
    * @param info (Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param flag idk
    */
-  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag) {
+  static void static_send_cb(const uint8_t* info ,const esp_now_send_status_t flag) {
     if (_instance == nullptr) return;
     _instance->config_.send_success = (flag == ESP_NOW_SEND_SUCCESS);
   }
