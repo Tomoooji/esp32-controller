@@ -127,6 +127,31 @@ public:
   bool send() {
     return this->serial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
+  
+  /**
+   * @brief output オブジェクトを設定
+   * 
+   * @param new_output 新しく設定するoutputオブジェクトの参照
+   * @retval OutputData& 設定したoutputオブジェクトへの参照
+   * @code
+   *  // 実体化してから設定
+   *   OutputData new_output;
+   *   new_output.value = 42;
+   *   controller.set_output(new_output);
+   * 
+   *  // 実体化せずに直接設定
+   *   controller.set_output(
+   *    // ~C++17
+   *     OutputData{42}
+   *    // C++20以降
+   *     OutputData{.value = 42}
+   *   );
+   * @endcode 
+   */
+  OutputData& set_output(OutputData& new_output) {
+    this->output_ = new_output;
+    return this->output_;
+  }
 };
 
 template <typename InputData, typename OutputData>

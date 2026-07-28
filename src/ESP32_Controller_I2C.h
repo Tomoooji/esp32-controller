@@ -131,6 +131,31 @@ public:
     Wire.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
     return Wire.endTransmission() == 0;
   }
+  
+  /**
+   * @brief output オブジェクトを設定
+   * 
+   * @param new_output 新しく設定するoutputオブジェクトの参照
+   * @retval OutputData& 設定したoutputオブジェクトへの参照
+   * @code
+   *  // 実体化してから設定
+   *   OutputData new_output;
+   *   new_output.value = 42;
+   *   controller.set_output(new_output);
+   * 
+   *  // 実体化せずに直接設定
+   *   controller.set_output(
+   *    // ~C++17
+   *     OutputData{42}
+   *    // C++20以降
+   *     OutputData{.value = 42}
+   *   );
+   * @endcode 
+   */
+  OutputData& set_output(OutputData& new_output) {
+    this->output_ = new_output;
+    return this->output_;
+  }
 };
 template <typename InputData, typename OutputData>
 using Controller_Response = Controller_I2C_Master_Response<InputData,OutputData>;
@@ -167,7 +192,7 @@ template <typename InputData>
 class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData> {
 private:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
-  volatile InputData input_buffer_; 
+  InputData input_buffer_; 
   inline static Controller_I2C_Slave *_instance = nullptr; //!< C++17以上でないと使えない
   
   /**
@@ -180,6 +205,7 @@ private:
   static void static_recv_cb(int size) {
     if (_instance == nullptr) return;
     if (size >= sizeof(InputData)) {
+      portENTER_CRITICAL(&_instance->recv_mux);
       Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_buffer_),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
@@ -190,6 +216,7 @@ private:
         Wire.read();
       }
       _instance->config_.receive_new = true;
+      portEXIT_CRITICAL(&_instance->recv_mux);
     }
   }
 
@@ -264,7 +291,7 @@ template <typename InputData, typename OutputData>
 class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response> {
 private:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
-  volatile InputData input_buffer_; 
+  InputData input_buffer_; 
   OutputData& output_;
   inline static Controller_I2C_Slave_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
@@ -278,6 +305,8 @@ private:
   static void static_recv_cb(int size) {
     if (_instance == nullptr) return;
     if (size >= sizeof(InputData)) {
+      // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
+      portENTER_CRITICAL(&_instance->recv_mux);
       Wire.readBytes(reinterpret_cast<uint8_t*>(&_instance->input_buffer_),sizeof(InputData));
       // ↑動かなかったら↓下のを使ってね
       /*uint8_t* bytePtr = reinterpret_cast<uint8_t*>(&_currentCmd);
@@ -288,6 +317,7 @@ private:
         Wire.read();
       }
       _instance->config_.receive_new = true;
+      portEXIT_CRITICAL(&_instance->recv_mux);
     }
   }
 
@@ -297,7 +327,10 @@ private:
    */
   static void static_request_cb() {
     if (_instance == nullptr) return;
+    // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
+    portENTER_CRITICAL(&_instance->recv_mux);
     _instance->config_.send_success = Wire.write(reinterpret_cast<uint8_t*>(&_instance->output_), sizeof(OutputData)) == sizeof(OutputData);
+    portEXIT_CRITICAL(&_instance->recv_mux);
   }
 
 public:
@@ -353,6 +386,34 @@ public:
     }
     return false;
   }
+
+  /**
+   * @brief output オブジェクトを設定
+   * 
+   * @param new_output 新しく設定するoutputオブジェクトの参照
+   * @retval OutputData& 設定したoutputオブジェクトへの参照
+   * @code
+   *  // 実体化してから設定
+   *   OutputData new_output;
+   *   new_output.value = 42;
+   *   controller.set_output(new_output);
+   * 
+   *  // 実体化せずに直接設定
+   *   controller.set_output(
+   *    // ~C++17
+   *     OutputData{42}
+   *    // C++20以降
+   *     OutputData{.value = 42}
+   *   );
+   * @endcode 
+   */
+  OutputData& set_output(OutputData& new_output) {
+    portENTER_CRITICAL(&this->recv_mux);
+    this->output_ = new_output;
+    portEXIT_CRITICAL(&this->recv_mux);
+    return this->output_;
+  }
+
 };
 
 #endif
