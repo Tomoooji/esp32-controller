@@ -8,7 +8,6 @@
  * 
  * @attention C++17以降でないと動かないコードが含まれます。
  * @attention 同じInputDataを指定したクラスでインスタンスを複数作るとコールバック関数が奪われます。
- * @attention Arduino Coreのバージョン次第ではコールバック関数のesp_now_recv_info_t*とesp_now_send_info_t*をuint8_t*にする必要があります。
  */
 
 #pragma once
@@ -59,6 +58,7 @@ private:
    * @param len  受け取ったデータのサイズ
    * @see Controller_ESPNOW::static_recv_cb
    */
+  #if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(5, 0, 0)
   static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len) {
     if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
     portENTER_CRITICAL(&_instance->recv_mux);
@@ -66,6 +66,15 @@ private:
     _instance->config_.receive_new = true;
     portEXIT_CRITICAL(&_instance->recv_mux);
   }
+  #else
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
+    if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
+    portENTER_CRITICAL(&_instance->recv_mux);
+    memcpy(&_instance->input_buffer_, data, sizeof(InputData));
+    _instance->config_.receive_new = true;
+    portEXIT_CRITICAL(&_instance->recv_mux);
+  }
+  #endif
 
 public:
 
@@ -164,6 +173,7 @@ private:
    * @param len  受け取ったデータのサイズ
    * @see Controller_ESPNOW::static_recv_cb
    */
+  #if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(5, 0, 0)
   static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len) {
     if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
     portENTER_CRITICAL(&_instance->recv_mux);
@@ -171,6 +181,15 @@ private:
     _instance->config_.receive_new = true;
     portEXIT_CRITICAL(&_instance->recv_mux);
   }
+  #else
+  static void static_recv_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
+    if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
+    portENTER_CRITICAL(&_instance->recv_mux);
+    memcpy(&_instance->input_buffer_, data, sizeof(InputData));
+    _instance->config_.receive_new = true;
+    portEXIT_CRITICAL(&_instance->recv_mux);
+  }
+  #endif
 
   /**
    * @brief 送信時のコールバック関数
@@ -179,10 +198,17 @@ private:
    * @param info (Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param flag idk
    */
+  #if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(5, 0, 0)
   static void static_send_cb(const uint8_t* info ,const esp_now_send_status_t flag) {
     if (_instance == nullptr) return;
     _instance->config_.send_success = (flag == ESP_NOW_SEND_SUCCESS);
   }
+  #else
+  static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag) {
+    if (_instance == nullptr) return;
+    _instance->config_.send_success = (flag == ESP_NOW_SEND_SUCCESS);
+  }
+  #endif
 
 public:
 
