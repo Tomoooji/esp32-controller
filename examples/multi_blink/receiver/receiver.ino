@@ -14,10 +14,8 @@
   Config_BluetoothSerial config = { .device_name = "ESP32_BT", .as_master = false };
 #endif
 
-struct BlinkCommand {
-    bool is_on;
-    int power;
-} __attribute__((__packed__)) command;
+#include "../blink_command.h"
+BlinkCommand command;
 
 Controller<BlinkCommand> ctrler(config,command);
 constexpr uint8_t pin_led = 2;

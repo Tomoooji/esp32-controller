@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <esp_now.h>
+#include "../blink_command.h"
 #include "../Button.h"
 
 const char[] peer_mac = "00:00:00:00:00:00"; // 送信先のMACアドレスを指定してください
@@ -7,10 +8,7 @@ const char[] peer_mac = "00:00:00:00:00:00"; // 送信先のMACアドレスを�
 Button button1(18);
 Button button2(19);
 
-struct BlinkCommand {
-  bool is_on;
-  int power;
-} __attribute__((__packed__));
+
 volatile BlinkCommand command;
 
 void send_cb(const esp_now_send_info_t *mac_addr, esp_now_send_status_t status) {
