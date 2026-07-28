@@ -43,7 +43,7 @@ template <typename InputData>
 class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData> {
 
 protected:
-  SerialBluetooth bluetoothserial_;
+  BluetoothSerial bluetoothserial_;
 
 public:
   using Controller_Base<Config_BluetoothSerial,InputData>::Controller_Base;
