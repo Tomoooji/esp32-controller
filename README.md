@@ -4,6 +4,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
+> 2026-07-28    ESP-NOWのコールバック関数の引数がバージョン間で異なる問題の修正、出力用構造体のセッターを追加
 > 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正、READMEに注意点の追加  
 > 2026-07-26    I2C,ESP-NOWにダブルバッファを実装(未検証)  
 > 2026-07-25    ファイル名、変数名などの一部改訂など  
@@ -151,8 +152,6 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
     ```
 - Controller_ESPNOW_Responseクラスのsend()関数は送信完了を待たずに戻るため、送信完了を確認するにはコールバック関数で送信結果を確認する必要があります。
 
-- 送受信時のコールバック関数の第一引数はESP32-Arduinoのバージョンによって型が変わるため、適宜変更してください。ESP32-Arduino 3.xでは``const esp_now_recv_info_t *info``ですが、2.xでは``const uint8_t *mac_addr``です。
-
 - C++17以降に追加された記法を用いているため、PlatformIOで使用する場合はbuild_flagsに``-std=gnu++17``を追加してください。
 
 ## クラス図
@@ -210,6 +209,7 @@ direction LR
     class Controller_BluetoothSerial_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
+        +OutputData& set_output()
     }
 
     class Controller_ESPNOW~InputData~ {
@@ -229,6 +229,7 @@ direction LR
         +bool begin()
         +bool update()
         +void send()
+        +OutputData& set_output()
     }
 
     class Controller_PS4~InputData~ {
@@ -245,6 +246,7 @@ direction LR
     class Controller_Serial_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
+        +OutputData& set_output()
     }
 
     class Controller_I2C_Master~InputData~ {
@@ -255,6 +257,7 @@ direction LR
     class Controller_I2C_Master_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
+        +OutputData& set_output()
     }
 
     class Controller_I2C_Slave~InputData~ {
@@ -273,6 +276,7 @@ direction LR
         -static void static_request_cb()
         +bool begin()
         +bool update()
+        +OutputData& set_output()
     }
 
     Controller_Base <|-- Controller_BluetoothSerial
@@ -309,4 +313,4 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 ---
 
 作成者:Tomoooji  
-最終更新:2026-07-27  
+最終更新:2026-07-28  
