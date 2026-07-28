@@ -272,14 +272,14 @@ public:
 //////////////////
 
 /** @brief I2C通信用の設定(スレーブ、送受信用) */
-struct Config_I2C_Slave {
+struct Config_I2C_Slave_Response {
   uint8_t address;
   int sda;
   int scl;
   uint32_t frequency;
   volatile bool receive_new;
   volatile bool send_success;
-  Config_I2C_Slave(uint8_t address, int sda = -1, int scl = -1, uint32_t frequency = 0):
+  Config_I2C_Slave_Response(uint8_t address, int sda = -1, int scl = -1, uint32_t frequency = 0):
     address(address),sda(sda),scl(scl),frequency(frequency),receive_new(false) {}
 };
 
@@ -295,7 +295,7 @@ struct Config_I2C_Slave {
  * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutputData>
-class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData,Config_I2C_Slave_Response> {
+class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData> {
 private:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
   InputData input_buffer_; 
