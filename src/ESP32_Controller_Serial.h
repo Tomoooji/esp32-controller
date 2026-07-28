@@ -27,9 +27,10 @@ struct InputData {
 
 /** @brief シリアル通信(UART)の設定 */
 struct Config_Serial {
-  int baudrate = 115200;
-  int Rx = -1;
-  int Tx = -1;
+  int baudrate;
+  int Rx;
+  int Tx;
+  Config_Serial(int baudrate = 115200, int Rx = -1, int Tx = -1):baudrate(baudrate),Rx(Rx),Tx(Tx) {}
 };
 
 /**

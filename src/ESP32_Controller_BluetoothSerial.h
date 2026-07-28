@@ -28,8 +28,9 @@ struct InputData {
 
 /** @brief BluetoothSerial用設定 */
 struct Config_BluetoothSerial {
-  const char* device_name = "ESP32_BT";
-  bool as_master = false; ///< trueならマスター、falseならスレーブ
+  const char* device_name;
+  bool as_master; ///< trueならマスター、falseならスレーブ
+  Config_BluetoothSerial(const char* device_name = "ESP32_BT", bool as_master = false):device_name(device_name),as_master(as_master) {}
 };
 
 /**

@@ -31,7 +31,8 @@ volatile struct InputData {
 
 /** @brief ESP-NOW(受信only)用設定 */
 struct Config_ESPNOW {
-  volatile bool receive_new = false; ///< 値の更新フラグ
+  volatile bool receive_new; ///< 値の更新フラグ
+  Config_ESPNOW():receive_new(false) {}
 };
 
 /**
@@ -129,8 +130,9 @@ using Controller = Controller_ESPNOW<InputData>;
  */
 struct Config_ESPNOW_Response {
   const uint8_t* mac_peer;
-  volatile bool receive_new = false;
-  volatile bool send_success = false;
+  volatile bool receive_new;
+  volatile bool send_success;
+  Config_ESPNOW_Response(const uint8_t* mac_peer):mac_peer(mac_peer),receive_new(false),send_success(false) {}
 };
 
 /**

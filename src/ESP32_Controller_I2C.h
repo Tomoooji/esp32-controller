@@ -30,9 +30,11 @@ struct InputData {
 /**　@brief I2C通信用の設定　*/
 struct Config_I2C_Master {
   uint8_t address_slave; //初期値は 0x2A など
-  int sda = -1;
-  int scl = -1;
-  uint32_t frequency = 0;
+  int sda;
+  int scl;
+  uint32_t frequency;
+  Config_I2C_Master(uint8_t address_slave, int sda = -1, int scl = -1, uint32_t frequency = 0):
+    address_slave(address_slave),sda(sda),scl(scl),frequency(frequency) {}
 };
 
 /**
@@ -176,10 +178,12 @@ volatile struct InputData {
 /** @brief I2C通信用の設定(スレーブ用) */
 struct Config_I2C_Slave {
   uint8_t address;
-  int sda = -1;
-  int scl = -1;
-  uint32_t frequency = 0;
-  volatile bool receive_new = false;
+  int sda;
+  int scl;
+  uint32_t frequency;
+  volatile bool receive_new;
+  Config_I2C_Slave(uint8_t address, int sda = -1, int scl = -1, uint32_t frequency = 0):
+    address(address),sda(sda),scl(scl),frequency(frequency),receive_new(false) {}
 };
 
 /**
@@ -268,14 +272,17 @@ public:
 //////////////////
 
 /** @brief I2C通信用の設定(スレーブ、送受信用) */
-struct Config_I2C_Slave_Response {
-  uint8_t address; //初期値は 0x2A など
-  int sda = -1;
-  int scl = -1;
-  uint32_t frequency = 0;
-  volatile bool receive_new = false;
-  volatile bool send_success = false;
+struct Config_I2C_Slave {
+  uint8_t address;
+  int sda;
+  int scl;
+  uint32_t frequency;
+  volatile bool receive_new;
+  volatile bool send_success;
+  Config_I2C_Slave(uint8_t address, int sda = -1, int scl = -1, uint32_t frequency = 0):
+    address(address),sda(sda),scl(scl),frequency(frequency),receive_new(false) {}
 };
+
 
 /**
  * @brief I2C(Slave)で構造体を送受信するクラス
