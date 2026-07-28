@@ -19,7 +19,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-#include "ESP32_Controller_BaseC.h"
+#include "ESP32_Controller_Base.h"
 
 /*
 volatile struct InputData {
