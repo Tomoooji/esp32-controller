@@ -9,7 +9,7 @@ Button button1(18);
 Button button2(19);
 
 
-volatile BlinkCommand command;
+BlinkCommand command;
 
 void send_cb(const esp_now_send_info_t *mac_addr, esp_now_send_status_t status) {
   if (status == ESP_NOW_SEND_SUCCESS) {
