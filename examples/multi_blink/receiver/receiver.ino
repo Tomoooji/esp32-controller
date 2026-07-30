@@ -15,6 +15,8 @@
 #endif
 
 #include "../blink_command.h"
+// ArduinoIDEで実行する場合はblink_command.hを同じフォルダにコピーしてください。
+
 BlinkCommand command;
 
 Controller<BlinkCommand> ctrler(config,command);

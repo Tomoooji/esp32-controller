@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include "../blink_command.h"
 #include "../Button.h"
+// ArduinoIDEで実行する場合はblink_command.hとButton.hを同じフォルダにコピーしてください。
 
 //portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 uint8_t address = 0x2A;

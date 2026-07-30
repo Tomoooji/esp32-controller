@@ -1,5 +1,6 @@
 #include "../blink_command.h"
 #include "../Button.h"
+// ArduinoIDEで実行する場合はblink_command.hとButton.hを同じフォルダにコピーしてください。
 
 Button button1(18);
 Button button2(19);

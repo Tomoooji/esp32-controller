@@ -2,6 +2,7 @@
 #include <esp_now.h>
 #include "../blink_command.h"
 #include "../Button.h"
+// ArduinoIDEで実行する場合はblink_command.hとButton.hを同じフォルダにコピーしてください。
 
 const char[] peer_mac = "00:00:00:00:00:00"; // 送信先のMACアドレスを指定してください
 

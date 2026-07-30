@@ -1,6 +1,7 @@
 #include <BluetoothSerial.h>
 #include "../blink_command.h"
 #include "../Button.h"
+// ArduinoIDEで実行する場合はblink_command.hとButton.hを同じフォルダにコピーしてください。
 
 BluetoothSerial SerialBT;
 const char* slave_name = "ESP32_BT";
