@@ -4,7 +4,7 @@
 #include "../Button.h"
 // ArduinoIDEで実行する場合はblink_command.hとButton.hを同じフォルダにコピーしてください。
 
-const char[] peer_mac = "00:00:00:00:00:00"; // 送信先のMACアドレスを指定してください
+const uint8_t peer_mac[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // 送信先のMACアドレスを指定してください
 
 Button button1(18);
 Button button2(19);
