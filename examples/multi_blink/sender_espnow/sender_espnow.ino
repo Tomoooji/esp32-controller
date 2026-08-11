@@ -59,6 +59,7 @@ void loop() {
   }
 
   esp_now_send(peer_mac, reinterpret_cast<uint8_t*>(&command), sizeof(BlinkCommand));
+  //esp_now_send(peer_mac, (uint8_t*)&command, sizeof(BlinkCommand));
   Serial.println("Command sent");
 
   delay(10);
