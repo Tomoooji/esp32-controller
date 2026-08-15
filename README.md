@@ -4,6 +4,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
+> 2026-08-15    いくつかの軽微な修正とサンプルコードsの検証  
 > 2026-07-28    ESP-NOWのコールバック関数の引数がバージョン間で異なる問題の修正、出力用構造体のセッターを追加  
 > 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正、READMEに注意点の追加  
 > 2026-07-26    I2C,ESP-NOWにダブルバッファを実装(未検証)  
@@ -159,7 +160,9 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
 
 (mermaidはGitHubモバイル上では動作しないようなのでブラウザから閲覧してください)
 
-### 基底クラスと構造体の関係
+<details><summary>
+
+### 基底クラスと構造体の関係</summary>
 
 ```mermaid
 classDiagram
@@ -184,8 +187,9 @@ classDiagram
     Controller_Base o-- ConfigData : reference
     Controller_Base o-- InputData : reference
 ```
+</details><details><summary>
 
-### 基底クラスと各クラスの関係
+### 基底クラスと各クラスの関係</summary>
 
 ```mermaid
 classDiagram
@@ -297,6 +301,7 @@ direction LR
     Controller_Base <|-- Controller_I2C_Slave
     Controller_Base <|-- Controller_I2C_Slave_Response
 ```
+</details>
 
 ## 参考プログラム(自作)
 
@@ -314,4 +319,4 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 ---
 
 作成者:Tomoooji  
-最終更新:2026-07-28  
+最終更新:2026-08-15  
