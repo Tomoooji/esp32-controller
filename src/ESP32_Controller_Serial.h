@@ -17,20 +17,11 @@
 
 #include "ESP32_Controller_Base.h"
 
-/*
-struct InputData {
-  //uint32_t angle;//degree
-  //uint32_t dist;
-  //uint32_t turn;
-} __attribute__((packed));
-*/
-
 /** @brief シリアル通信(UART)の設定 */
 struct Config_Serial {
-  int baudrate;
-  int Rx;
-  int Tx;
-  Config_Serial(int baudrate = 115200, int Rx = -1, int Tx = -1):baudrate(baudrate),Rx(Rx),Tx(Tx) {}
+  int baudrate = 115200;
+  int Rx = -1;
+  int Tx = -1;
 };
 
 /**
@@ -46,7 +37,6 @@ private:
   HardwareSerial& serial_;
 
 public:
-
   /**
    * @brief Controller_Serial オブジェクトを作成
    * 
@@ -103,11 +93,9 @@ template <typename InputData, typename OutputData>
 class Controller_Serial_Response : public Controller_Serial<InputData> {
 
 private:
-
   OutputData& output_;
 
 public:
-
   /**
    * @brief Controller_Serial_Response オブジェクトを作成
    * 

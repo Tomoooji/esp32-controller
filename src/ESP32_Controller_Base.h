@@ -30,7 +30,6 @@ protected:
   InputData& input_;
 
 public:
-
   /**
    * @brief Controller_Base オブジェクトを作成
    * 

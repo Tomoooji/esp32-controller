@@ -18,19 +18,10 @@
 
 #include "ESP32_Controller_Base.h"
 
-/*
-struct InputData {
-  //uint32_t angle;//degree
-  //uint32_t dist;
-  //uint32_t turn;
-} __attribute__((packed));
-*/
-
 /** @brief BluetoothSerial用設定 */
 struct Config_BluetoothSerial {
-  const char* device_name;
-  bool as_master; ///< trueならマスター、falseならスレーブ
-  Config_BluetoothSerial(const char* device_name = "ESP32_BT", bool as_master = false):device_name(device_name),as_master(as_master) {}
+  const char* device_name = "ESP32_BT"; ///< デバイス名
+  bool as_master = false; ///< trueならマスター、falseならスレーブ
 };
 
 /**
@@ -101,7 +92,6 @@ private:
   OutputData& output_;
 
 public:
-
   /**
    * @brief Controller_BluetoothSerial_Response オブジェクトを作成
    * 

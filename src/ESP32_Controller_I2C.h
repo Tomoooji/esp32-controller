@@ -19,22 +19,12 @@
 
 #include "ESP32_Controller_Base.h"
 
-/*
-struct InputData {
-  //uint32_t angle;//degree
-  //uint32_t dist;
-  //uint32_t turn;
-} __attribute__((packed));
-*/
-
 /**　@brief I2C通信用の設定　*/
 struct Config_I2C_Master {
   uint8_t address_slave; //初期値は 0x2A など
-  int sda;
-  int scl;
-  uint32_t frequency;
-  Config_I2C_Master(uint8_t address_slave, int sda = -1, int scl = -1, uint32_t frequency = 0):
-    address_slave(address_slave),sda(sda),scl(scl),frequency(frequency) {}
+  int sda = -1;
+  int scl = -1;
+  uint32_t frequency = 0; // 0ならデフォルトの100kHz
 };
 
 /**
@@ -46,7 +36,7 @@ struct Config_I2C_Master {
  */
 template <typename InputData>
 class Controller_I2C_Master : public Controller_Base<Config_I2C_Master,InputData> {
-private:
+
 public:
   using Controller_Base<Config_I2C_Master,InputData>::Controller_Base;
 
@@ -107,6 +97,7 @@ using Controller = Controller_I2C_Master<InputData>;
  */
 template <typename InputData, typename OutputData>
 class Controller_I2C_Master_Response : public Controller_I2C_Master<InputData> {
+
 private:
   OutputData& output_;
 
@@ -167,23 +158,13 @@ using Controller_Response = Controller_I2C_Master_Response<InputData,OutputData>
 // スレーブ用（外部マスターからコマンド受信）-> 基本使わない方針で
 // ============================================
 
-/*
-volatile struct InputData {
-  //uint32_t angle;//degree
-  //uint32_t dist;
-  //uint32_t turn;
-} __attribute__((packed));
-*/
-
 /** @brief I2C通信用の設定(スレーブ用) */
 struct Config_I2C_Slave {
   uint8_t address;
-  int sda;
-  int scl;
-  uint32_t frequency;
+  int sda = -1;
+  int scl = -1;
+  uint32_t frequency = 0; // 0ならデフォルトの100kHz
   volatile bool receive_new;
-  Config_I2C_Slave(uint8_t address, int sda = -1, int scl = -1, uint32_t frequency = 0):
-    address(address),sda(sda),scl(scl),frequency(frequency),receive_new(false) {}
 };
 
 /**
@@ -194,6 +175,7 @@ struct Config_I2C_Slave {
  */
 template <typename InputData>
 class Controller_I2C_Slave : public Controller_Base<Config_I2C_Slave,InputData> {
+
 private:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
   InputData input_buffer_; 
@@ -274,13 +256,11 @@ public:
 /** @brief I2C通信用の設定(スレーブ、送受信用) */
 struct Config_I2C_Slave_Response {
   uint8_t address;
-  int sda;
-  int scl;
-  uint32_t frequency;
+  int sda = -1;
+  int scl = -1;
+  uint32_t frequency = 0; // 0ならデフォルトの100kHz
   volatile bool receive_new;
   volatile bool send_success;
-  Config_I2C_Slave_Response(uint8_t address, int sda = -1, int scl = -1, uint32_t frequency = 0):
-    address(address),sda(sda),scl(scl),frequency(frequency),receive_new(false) {}
 };
 
 
@@ -296,6 +276,7 @@ struct Config_I2C_Slave_Response {
  */
 template <typename InputData, typename OutputData>
 class Controller_I2C_Slave_Response : public Controller_Base<Config_I2C_Slave_Response,InputData> {
+
 private:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
   InputData input_buffer_; 
@@ -341,7 +322,6 @@ private:
   }
 
 public:
-
   /**
    * @brief Controller_I2C_Slave_Response オブジェクトを作成
    * 

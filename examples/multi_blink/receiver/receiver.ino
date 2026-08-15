@@ -1,17 +1,24 @@
-#define ESPNOW
+#define CONTROLLER_SERIAL
 
-#ifdef ESPNOW
-  #include <ESP32_Controller_ESPNOW.h>
-  Config_ESPNOW config;
-#elif SERIAL
+#if defined(CONTROLLER_SERIAL)
   #include <ESP32_Controller_Serial.h>
   Config_Serial config = { .baudrate = 115200, .Rx = 16, .Tx = 17 };
-#elif I2C
+  //Config_Serial config{115200,16,17};
+
+#elif defined(CONTROLLER_I2C)
   #include <ESP32_Controller_I2C.h>
   Config_I2C_Master config = { .address_slave = 0x2A, .sda = 21, .scl = 22, .frequency = 400000 };
-#elif BLUETOOTH
+  //Config_I2C_Master config{0x2A,21,22,400000};
+
+#elif defined(CONTROLLER_ESPNOW)
+  #include <ESP32_Controller_ESPNOW.h>
+  Config_ESPNOW config;
+
+#elif defined(CONTROLLER_BLUETOOTH)
   #include <ESP32_Controller_BluetoothSerial.h>
   Config_BluetoothSerial config = { .device_name = "ESP32_BT", .as_master = false };
+  //Config_BluetoothSerial config{"ESP32_BT", false};
+
 #endif
 
 #include "../blink_command.h"
@@ -38,6 +45,13 @@ void loop() {
       ledcWrite(pin_led, ctrler.get_input().power);
       //ledcWrite(0, ctrler.get_input().power);
     }
+    Serial.print(ctrler.get_input().is_on);
+    Serial.print(",");
+    Serial.print(ctrler.get_input().power);
+    Serial.println();
+  } else {
+    ledcWrite(pin_led, 0);
+    Serial.println("not connected");
   }
   delay(10);
 }

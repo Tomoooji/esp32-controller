@@ -6,6 +6,7 @@
  * @date 2026-07-25
  * @copyright Copyright (c) 2026
  * 
+ * @attention 入力用構造体にはvoid apply()関数を定義する必要があります。
  * @note 結構無理くりラップしてるので他クラスとの互換性が不要ならそのまま使うことを推奨します。
  */
 
@@ -19,12 +20,6 @@
 
 #include "ESP32_Controller_Base.h"
 
-/*
-struct Input_PS4 {
-  void apply();
-};
-*/
-
 /** 
  * @brief DualShock4との通信用設定
  * 
@@ -37,9 +32,7 @@ struct Input_PS4 {
  * @note MACアドレスなしで初期化するとESP32のMACアドレスが使われる。
  */
 struct Config_PS4 {
-  const char* mac;
-  Config_PS4(const char* mac = nullptr):mac(mac) {}
-  // C++20以上なら const char* mac = nullptr; だけで良い
+  const char* mac = nullptr;
 };
 
 /**
