@@ -1,9 +1,9 @@
 /**
- * @file Controller_Base.h
+ * @file ESP32Controller_Base.h
  * @brief 各ライブラリの抽象基底クラスのヘッダ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-25
+ * @date 2026-08-27
  * @copyright Copyright (c) 2026
  * 
  * @note 
@@ -23,7 +23,7 @@
  * @attention このクラスは継承しないと実体化できない抽象基底クラスです。必ず継承先でbool begin()とbool update()を実装してください。
  */
 template <typename ConfigData, typename InputData>
-class Controller_Base {
+class ESP32Controller_Base {
 
 protected:
   ConfigData& config_;
@@ -31,12 +31,12 @@ protected:
 
 public:
   /**
-   * @brief Controller_Base オブジェクトを作成
+   * @brief ESP32Controller_Base オブジェクトを作成
    * 
    * @param config_data 設定用構造体の参照
    * @param input_data  受け取るデータ(構造体)の参照
    */
-  explicit Controller_Base(ConfigData& config_data, InputData& input_data):config_(config_data),input_(input_data) {}
+  explicit ESP32Controller_Base(ConfigData& config_data, InputData& input_data):config_(config_data),input_(input_data) {}
 
   /**
    * @brief 初期化用の純粋仮想関数
@@ -60,7 +60,7 @@ public:
    * @brief inputオブジェクトのゲッター関数
    * 
    * @return const InputData& 入力データの構造体への参照
-   * @note Controller.get_input().XXで値を参照できる。代入は不可
+   * @note ESP32Controller.get_input().XXで値を参照できる。代入は不可
    */
   const InputData& get_input() {return this->input_;}
   
@@ -68,7 +68,7 @@ public:
    * @brief configオブジェクトのゲッター関数
    * 
    * @return ConfigData& 設定データの構造体への参照
-   * @note Controller.get_config().XXで値の参照,更新ができる。
+   * @note ESP32Controller.get_config().XXで値の参照,更新ができる。
    */
   ConfigData& get_config() {return this->config_;}
 };
@@ -78,12 +78,12 @@ public:
 /*
 struct Config_RemoteXY {};
 
-class Controller_RemoteXY : public Controller_Base<Config_RemoteXY,...> {
+class ESP32Controller_RemoteXY : public ESP32Controller_Base<Config_RemoteXY,...> {
 public:
   bool begin() override {
     RemoteXY_Init();
   }
-  bool updata() override {
+  bool update() override {
     RemoteXYEngine.handler();
   }
 };

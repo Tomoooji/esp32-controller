@@ -4,6 +4,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
+> 2026-08-27    各ファイル名の再検討とクラス名の変更
 > 2026-08-15    いくつかの軽微な修正とサンプルコードの検証  
 > 2026-07-28    ESP-NOWのコールバック関数の引数がバージョン間で異なる問題の修正、出力用構造体のセッターを追加  
 > 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正、READMEに注意点の追加  
@@ -42,12 +43,12 @@ esp32-controller/
 │     ├─ serial_rimocon.py          # Raspberry Piから構造体ベースのシリアル通信をするプログラム
 │     └─ ESP32.json                 # 通信用設定ファイル
 ├─ src/
-│  ├─ ESP32_Controller_Base.h       # 基底クラスのヘッダファイル  直接使うことはない
-│  ├─ ESP32_Controller_PS4.h        # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
-│  ├─ ESP32_Controller_Serial.h     # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
-│  ├─ ESP32_Controller_I2C.h        # I2C通信で通信するクラスのヘッダファイル　双方向verもある
-│  ├─ ESP32_Controller_BluetoothSerial.h # Bluetooth Classicで通信するクラスのヘッダファイル　双方向verもある
-│  └─ ESP32_Controller_ESPNOW.h     # ESP-NOWで通信するクラスのヘッダファイル　双方向verもある
+│  ├─ ESP32Controller_Base.h        # 基底クラスのヘッダファイル  直接使うことはない
+│  ├─ ESP32Controller_PS4.h         # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
+│  ├─ ESP32Controller_Serial.h      # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
+│  ├─ ESP32Controller_I2C.h         # I2C通信で通信するクラスのヘッダファイル　双方向verもある
+│  ├─ ESP32Controller_BluetoothSerial.h # Bluetooth Classicで通信するクラスのヘッダファイル　双方向verもある
+│  └─ ESP32Controller_ESPNOW.h      # ESP-NOWで通信するクラスのヘッダファイル　双方向verもある
 ├─ library.properties               # ArduinoIDE用
 ├─ library.json                     # PlatformIO用
 ├─ LICENSE
@@ -84,7 +85,7 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
 
 ## 使い方
 
-1. ``#include <ESP32_Controller_{操作方法}.h>``でインクルード
+1. ``#include <ESP32Controller_{操作方法}.h>``でインクルード
 2. やり取りしたい変数を格納するための操作用構造体を宣言して実体化
 3. 設定用の構造体(``Config_{操作方法}``)を実体化
 4. ``Controller<操作用構造体の型名> コントローラーオブジェクト(設定用構造体の実体名,操作用構造体の実体名);``で宣言
@@ -133,13 +134,13 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
     } __attribute__((__packed__));
     Input_Command input_command;
 
-    Controller<Input_Command> controller(config, input_command);
+    ESP32Controller<Input_Command> controller(config, input_command);
 
     ///////////////////
 
     // これはバグの原因になります。
     Input_Command another_command;
-    Controller<Input_Command> another_controller(config, another_command); 
+    ESP32Controller<Input_Command> another_controller(config, another_command); 
 
     ///////////////////
 
@@ -149,10 +150,10 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
     } __attribute__((__packed__));
     Input_Command another_command;
 
-    Controller<Input_Command> another_controller(config, another_command);
+    ESP32Controller<Input_Command> another_controller(config, another_command);
 
     ```
-- Controller_ESPNOW_Responseクラスのsend()関数は送信完了を待たずに戻るため、送信完了を確認するにはコールバック関数で送信結果を確認する必要があります。
+- ESP32Controller_ESPNOW_Responseクラスのsend()関数は送信完了を待たずに戻るため、送信完了を確認するにはコールバック関数で送信結果を確認する必要があります。
 
 - C++17以降に追加された記法を用いているため、PlatformIOで使用する場合はbuild_flagsに``-std=gnu++17``を追加してください。
 
@@ -166,7 +167,7 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
 
 ```mermaid
 classDiagram
-    class Controller_Base~ConfigData, InputData~ {
+    class ESP32Controller_Base~ConfigData, InputData~ {
         #ConfigData& config_
         #InputData& input_
 
@@ -184,8 +185,8 @@ classDiagram
         <<user defined>>
     }
 
-    Controller_Base o-- ConfigData : reference
-    Controller_Base o-- InputData : reference
+    ESP32Controller_Base o-- ConfigData : reference
+    ESP32Controller_Base o-- InputData : reference
 ```
 </details><details><summary>
 
@@ -194,41 +195,41 @@ classDiagram
 ```mermaid
 classDiagram
 direction LR
-    class Controller_Base~ConfigData, InputData~ {
+    class ESP32Controller_Base~ConfigData, InputData~ {
         <<abstract>>
         #ConfigData& config_
         #InputData& input_
-        +Controller_Base(ConfigData&, InputData&)
+        +ESP32Controller_Base(ConfigData&, InputData&)
         +bool begin()*
         +bool update()*
         +const InputData& get_input()
         +ConfigData& get_config()
     }
 
-    class Controller_BluetoothSerial~InputData~ {
+    class ESP32Controller_BluetoothSerial~InputData~ {
         #BluetoothSerial bluetoothserial_
         +bool begin()
         +bool update()
     }
 
-    class Controller_BluetoothSerial_Response~InputData, OutputData~ {
+    class ESP32Controller_BluetoothSerial_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
         +OutputData& set_output()
     }
 
-    class Controller_ESPNOW~InputData~ {
+    class ESP32Controller_ESPNOW~InputData~ {
         -InputData& input_buffer_
-        -static Controller_ESPNOW* _instance
+        -static ESP32Controller_ESPNOW* _instance
         -static void static_recv_cb(...)
         +bool begin()
         +bool update()
     }
 
-    class Controller_ESPNOW_Response~InputData, OutputData~ {
+    class ESP32Controller_ESPNOW_Response~InputData, OutputData~ {
         -InputData& input_buffer_
         -OutputData& output_
-        -static Controller_ESPNOW_Response* _instance
+        -static ESP32Controller_ESPNOW_Response* _instance
         -static void static_recv_cb(...)
         -static void static_send_cb(...)
         +bool begin()
@@ -237,46 +238,46 @@ direction LR
         +OutputData& set_output()
     }
 
-    class Controller_PS4~InputData~ {
+    class ESP32Controller_PS4~InputData~ {
         +bool begin()
         +bool update()
     }
 
-    class Controller_Serial~InputData~ {
+    class ESP32Controller_Serial~InputData~ {
         -HardwareSerial& serial_
         +bool begin()
         +bool update()
     }
 
-    class Controller_Serial_Response~InputData, OutputData~ {
+    class ESP32Controller_Serial_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
         +OutputData& set_output()
     }
 
-    class Controller_I2C_Master~InputData~ {
+    class ESP32Controller_I2C_Master~InputData~ {
         +bool begin()
         +bool update()
     }
 
-    class Controller_I2C_Master_Response~InputData, OutputData~ {
+    class ESP32Controller_I2C_Master_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
         +OutputData& set_output()
     }
 
-    class Controller_I2C_Slave~InputData~ {
+    class ESP32Controller_I2C_Slave~InputData~ {
         -InputData& input_buffer_
-        -static Controller_I2C_Slave* _instance
+        -static ESP32Controller_I2C_Slave* _instance
         -static void static_recv_cb(int)
         +bool begin()
         +bool update()
     }
 
-    class Controller_I2C_Slave_Response~InputData, OutputData~ {
+    class ESP32Controller_I2C_Slave_Response~InputData, OutputData~ {
         -InputData& input_buffer_
         -OutputData& output_
-        -static Controller_I2C_Slave_Response* _instance
+        -static ESP32Controller_I2C_Slave_Response* _instance
         -static void static_recv_cb(int)
         -static void static_request_cb()
         +bool begin()
@@ -284,22 +285,22 @@ direction LR
         +OutputData& set_output()
     }
 
-    Controller_Base <|-- Controller_BluetoothSerial
-    Controller_BluetoothSerial <|-- Controller_BluetoothSerial_Response
+    ESP32Controller_Base <|-- ESP32Controller_BluetoothSerial
+    ESP32Controller_BluetoothSerial <|-- ESP32Controller_BluetoothSerial_Response
 
-    Controller_Base <|-- Controller_ESPNOW
-    Controller_Base <|-- Controller_ESPNOW_Response
+    ESP32Controller_Base <|-- ESP32Controller_ESPNOW
+    ESP32Controller_Base <|-- ESP32Controller_ESPNOW_Response
 
-    Controller_Base <|-- Controller_PS4
+    ESP32Controller_Base <|-- ESP32Controller_PS4
 
-    Controller_Base <|-- Controller_Serial
-    Controller_Serial <|-- Controller_Serial_Response
+    ESP32Controller_Base <|-- ESP32Controller_Serial
+    ESP32Controller_Serial <|-- ESP32Controller_Serial_Response
 
-    Controller_Base <|-- Controller_I2C_Master
-    Controller_I2C_Master <|-- Controller_I2C_Master_Response
+    ESP32Controller_Base <|-- ESP32Controller_I2C_Master
+    ESP32Controller_I2C_Master <|-- ESP32Controller_I2C_Master_Response
 
-    Controller_Base <|-- Controller_I2C_Slave
-    Controller_Base <|-- Controller_I2C_Slave_Response
+    ESP32Controller_Base <|-- ESP32Controller_I2C_Slave
+    ESP32Controller_Base <|-- ESP32Controller_I2C_Slave_Response
 ```
 </details>
 
@@ -319,4 +320,4 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 ---
 
 作成者:Tomoooji  
-最終更新:2026-08-15  
+最終更新:2026-08-27  

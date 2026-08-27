@@ -1,9 +1,9 @@
 /**
- * @file Controller_Serial.h
+ * @file ESP32Controller_Serial.h
  * @brief シリアル通信(UART)で構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-25
+ * @date 2026-08-27
  * @copyright Copyright (c) 2026
  * 
  * @note 
@@ -15,7 +15,7 @@
 
 #include <Arduino.h>
 
-#include "ESP32_Controller_Base.h"
+#include "ESP32Controller_Base.h"
 
 /** @brief シリアル通信(UART)の設定 */
 struct Config_Serial {
@@ -31,21 +31,21 @@ struct Config_Serial {
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class Controller_Serial : public Controller_Base<Config_Serial,InputData> {
+class ESP32Controller_Serial : public ESP32Controller_Base<Config_Serial,InputData> {
 
 private:
   HardwareSerial& serial_;
 
 public:
   /**
-   * @brief Controller_Serial オブジェクトを作成
+   * @brief ESP32Controller_Serial オブジェクトを作成
    * 
    * @param serial Serial or Serial2
    * @param config_data 設定用構造体の参照
    * @param input_data 受け取るデータ(構造体)の参照
    */
-  Controller_Serial(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data):
-    Controller_Base<Config_Serial,InputData>(config_data,input_data),serial_(serial) {}
+  ESP32Controller_Serial(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data):
+    ESP32Controller_Base<Config_Serial,InputData>(config_data,input_data),serial_(serial) {}
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -78,7 +78,7 @@ public:
   }
 };
 template <typename InputData>
-using Controller = Controller_Serial<InputData>;
+using ESP32Controller = ESP32Controller_Serial<InputData>;
 
 //////////
 
@@ -90,22 +90,22 @@ using Controller = Controller_Serial<InputData>;
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
-class Controller_Serial_Response : public Controller_Serial<InputData> {
+class ESP32Controller_Serial_Response : public ESP32Controller_Serial<InputData> {
 
 private:
   OutputData& output_;
 
 public:
   /**
-   * @brief Controller_Serial_Response オブジェクトを作成
+   * @brief ESP32Controller_Serial_Response オブジェクトを作成
    * 
    * @param serial Serial or Serial2
    * @param config_data 設定用構造体の参照
    * @param input_data 受け取るデータ(構造体)の参照
    * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_Serial_Response(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data, OutputData& output_data):
-    Controller_Serial<InputData>(serial,config_data,input_data),output_ {output_data} {}
+  ESP32Controller_Serial_Response(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data, OutputData& output_data):
+    ESP32Controller_Serial<InputData>(serial,config_data,input_data),output_ {output_data} {}
 
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
@@ -144,6 +144,6 @@ public:
 };
 
 template <typename InputData, typename OutputData>
-using Controller_Response = Controller_Serial_Response<InputData,OutputData>;
+using ESP32Controller_Response = ESP32Controller_Serial_Response<InputData,OutputData>;
 
 #endif

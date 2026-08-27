@@ -1,4 +1,4 @@
-#include <ESP32_Controller_PS4.h>
+#include <ESP32Controller_PS4.h>
 
 struct WheelCommand {
   int speed_L;
@@ -9,7 +9,7 @@ struct WheelCommand {
   }
 } input;
 Config_PS4 config = { .mac = "00:00:00:00:00:00" };
-Controller<WheelCommand> ps4pad(config, input);
+ESP32Controller<WheelCommand> ps4pad(config, input);
 
 enum MOTOR_ID {
   MOTOR_FL,

@@ -1,9 +1,9 @@
 /**
- * @file Controller_BluetoothSerial.h
+ * @file ESP32Controller_BluetoothSerial.h
  * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-27
+ * @date 2026-08-27
  * @copyright Copyright (c) 2026
  * 
  * @todo SPPまわり
@@ -16,7 +16,7 @@
 #include <Arduino.h>
 #include <BluetoothSerial.h>
 
-#include "ESP32_Controller_Base.h"
+#include "ESP32Controller_Base.h"
 
 /** @brief BluetoothSerial用設定 */
 struct Config_BluetoothSerial {
@@ -31,13 +31,13 @@ struct Config_BluetoothSerial {
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class Controller_BluetoothSerial : public Controller_Base<Config_BluetoothSerial,InputData> {
+class ESP32Controller_BluetoothSerial : public ESP32Controller_Base<Config_BluetoothSerial,InputData> {
 
 protected:
   BluetoothSerial bluetoothserial_;
 
 public:
-  using Controller_Base<Config_BluetoothSerial,InputData>::Controller_Base;
+  using ESP32Controller_Base<Config_BluetoothSerial,InputData>::ESP32Controller_Base;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -75,7 +75,7 @@ public:
 };
 
 template <typename InputData>
-using Controller = Controller_BluetoothSerial<InputData>;
+using ESP32Controller = ESP32Controller_BluetoothSerial<InputData>;
 
 
 /**
@@ -86,21 +86,21 @@ using Controller = Controller_BluetoothSerial<InputData>;
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
-class Controller_BluetoothSerial_Response : public Controller_BluetoothSerial<InputData> {
+class ESP32Controller_BluetoothSerial_Response : public ESP32Controller_BluetoothSerial<InputData> {
 
 private:
   OutputData& output_;
 
 public:
   /**
-   * @brief Controller_BluetoothSerial_Response オブジェクトを作成
+   * @brief ESP32Controller_BluetoothSerial_Response オブジェクトを作成
    * 
    * @param config_data 設定用構造体の参照
    * @param input_data  受け取るデータ(構造体)の参照
    * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_BluetoothSerial_Response(Config_BluetoothSerial& config_data, InputData& input_data, OutputData& output_data):
-    Controller_BluetoothSerial<InputData>(config_data,input_data),output_(output_data) {}
+  ESP32Controller_BluetoothSerial_Response(Config_BluetoothSerial& config_data, InputData& input_data, OutputData& output_data):
+    ESP32Controller_BluetoothSerial<InputData>(config_data,input_data),output_(output_data) {}
 
   /**
    * @brief 構造体を相手に送る関数
@@ -114,6 +114,6 @@ public:
 };
 
 template <typename InputData, typename OutputData>
-using Controller_Response = Controller_BluetoothSerial_Response<InputData,OutputData>;
+using ESP32Controller_Response = ESP32Controller_BluetoothSerial_Response<InputData,OutputData>;
 
 #endif

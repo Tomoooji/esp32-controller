@@ -1,9 +1,9 @@
 /**
- * @file Controller_PS4.h
+ * @file ESP32Controller_PS4.h
  * @brief PS4コントローラー(DualShock4)からBluetoothで入力値を受け取るライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-25
+ * @date 2026-08-27
  * @copyright Copyright (c) 2026
  * 
  * @attention 入力用構造体にはvoid apply()関数を定義する必要があります。
@@ -18,7 +18,7 @@
 
 #include <PS4Controller.h>
 
-#include "ESP32_Controller_Base.h"
+#include "ESP32Controller_Base.h"
 
 /** 
  * @brief DualShock4との通信用設定
@@ -42,9 +42,9 @@ struct Config_PS4 {
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
 template <typename InputData>
-class Controller_PS4 :public Controller_Base<Config_PS4,InputData> {
+class ESP32Controller_PS4 :public ESP32Controller_Base<Config_PS4,InputData> {
 public:
-  using Controller_Base<Config_PS4,InputData>::Controller_Base;
+  using ESP32Controller_Base<Config_PS4,InputData>::ESP32Controller_Base;
   
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -72,6 +72,6 @@ public:
   }
 };
 template <typename InputData>
-using Controller = Controller_PS4<InputData>;
+using ESP32Controller = ESP32Controller_PS4<InputData>;
 
 #endif

@@ -1,9 +1,9 @@
 /**
- * @file Controller_ESPNOW.h
+ * @file ESP32Controller_ESPNOW.h
  * @brief ESP-NOWで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-07-26
+ * @date 2026-08-27
  * @copyright Copyright (c) 2026
  * 
  * @attention C++17以降でないと動かないコードが含まれます。
@@ -18,7 +18,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-#include "ESP32_Controller_Base.h"
+#include "ESP32Controller_Base.h"
 
 /** @brief ESP-NOW(受信only)用設定 */
 struct Config_ESPNOW {
@@ -32,12 +32,12 @@ struct Config_ESPNOW {
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class Controller_ESPNOW :public Controller_Base<Config_ESPNOW,InputData> {
+class ESP32Controller_ESPNOW :public ESP32Controller_Base<Config_ESPNOW,InputData> {
 
 private:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
   InputData input_buffer_; 
-  inline static Controller_ESPNOW *_instance = nullptr; //!< C++17以上でないと使えない
+  inline static ESP32Controller_ESPNOW *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数
@@ -47,7 +47,7 @@ private:
    * @param info 送り手のアドレスなどが入ってる(Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
-   * @see Controller_ESPNOW::static_recv_cb
+   * @see ESP32Controller_ESPNOW::static_recv_cb
    */
   #if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(5, 0, 0)
   static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len) {
@@ -68,7 +68,7 @@ private:
   #endif
 
 public:
-  using Controller_Base<Config_ESPNOW,InputData>::Controller_Base;
+  using ESP32Controller_Base<Config_ESPNOW,InputData>::ESP32Controller_Base;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -112,7 +112,7 @@ public:
   }
 };
 template <typename InputData>
-using Controller = Controller_ESPNOW<InputData>;
+using ESP32Controller = ESP32Controller_ESPNOW<InputData>;
 
 /////////
 
@@ -144,13 +144,13 @@ struct Config_ESPNOW_Response {
  * @attention 受信onlyの方でupdateとかstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutputData>
-class Controller_ESPNOW_Response :public Controller_Base<Config_ESPNOW_Response,InputData> {
+class ESP32Controller_ESPNOW_Response :public ESP32Controller_Base<Config_ESPNOW_Response,InputData> {
 
 private:
   OutputData& output_;
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
   InputData input_buffer_;
-  inline static Controller_ESPNOW_Response *_instance = nullptr; //!< C++17以上でないと使えない
+  inline static ESP32Controller_ESPNOW_Response *_instance = nullptr; //!< C++17以上でないと使えない
 
   /**
    * @brief 受信時のコールバック関数(流用)
@@ -160,7 +160,7 @@ private:
    * @param info 送り手のアドレスなどが入ってる(Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
-   * @see Controller_ESPNOW::static_recv_cb
+   * @see ESP32Controller_ESPNOW::static_recv_cb
    */
   #if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(5, 0, 0)
   static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len) {
@@ -201,14 +201,14 @@ private:
 
 public:
   /**
-   * @brief Controller_ESPNOW_Response オブジェクトを作成
+   * @brief ESP32Controller_ESPNOW_Response オブジェクトを作成
    * 
    * @param config_data 設定用構造体の参照
    * @param input_data  受け取るデータ(構造体)の参照
    * @param output_data 送るデータ(構造体)の参照
    */
-  Controller_ESPNOW_Response(Config_ESPNOW_Response& config_data, InputData& input_data, OutputData& output_data):
-  Controller_Base<Config_ESPNOW_Response,InputData>(config_data,input_data),output_(output_data) {}
+  ESP32Controller_ESPNOW_Response(Config_ESPNOW_Response& config_data, InputData& input_data, OutputData& output_data):
+  ESP32Controller_Base<Config_ESPNOW_Response,InputData>(config_data,input_data),output_(output_data) {}
   
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -216,7 +216,7 @@ public:
    * 
    * @retval true  初期化成功
    * @retval false 初期化失敗
-   * @see Controller_ESPNOW::begin
+   * @see ESP32Controller_ESPNOW::begin
    */
   bool begin() override {
     WiFi.mode(WIFI_STA);
@@ -242,7 +242,7 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    * @note コピーしてる間はCritical Sectionでコールバック関数を止めている。
-   * @see Controller_ESPNOW::update
+   * @see ESP32Controller_ESPNOW::update
    */
   bool update() override {
     if (this->config_.receive_new) {
@@ -293,6 +293,6 @@ public:
 
 };
 template <typename InputData, typename OutputData>
-using Controller_Response = Controller_ESPNOW_Response<InputData,OutputData>;
+using ESP32Controller_Response = ESP32Controller_ESPNOW_Response<InputData,OutputData>;
 
 #endif
