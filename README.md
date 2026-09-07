@@ -168,14 +168,14 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
 
 ```mermaid
 classDiagram
-    class ESP32Controller_Base~ConfigData, InputData~ {
+    class ESP32Controller_Base~ConfigData,InputData~ {
+        <<abstract>>
         #ConfigData& config_
         #InputData& input_
-
         +begin() bool
         +update() bool
-        +const get_input() const InputData&
-        +get_config() const ConfigData&
+        +get_input() const InputData&
+        +get_config() ConfigData&
     }
 
     class ConfigData {
@@ -186,8 +186,8 @@ classDiagram
         <<user defined>>
     }
 
-    ESP32Controller_Base o-- ConfigData : reference
-    ESP32Controller_Base o-- InputData : reference
+    ESP32Controller_Base --> ConfigData : references
+    ESP32Controller_Base --> InputData : references
 ```
 </details><details><summary>
 
@@ -196,14 +196,13 @@ classDiagram
 ```mermaid
 classDiagram
 direction LR
-    class ESP32Controller_Base~ConfigData, InputData~ {
+    class ESP32Controller_Base~ConfigData,InputData~ {
         <<abstract>>
         #ConfigData& config_
         #InputData& input_
-        +ESP32Controller_Base(ConfigData&, InputData&)
-        +bool begin()*
-        +bool update()*
-        +const InputData& const get_input()
+        +begin() bool
+        +update() bool
+        +const InputData& get_input() const
         +ConfigData& get_config()
     }
 
@@ -216,11 +215,12 @@ direction LR
     class ESP32Controller_BluetoothSerial_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
-        +OutputData& set_output()
+        +const OutputData& set_output(OutputData&)
     }
 
     class ESP32Controller_ESPNOW~InputData~ {
-        -InputData& input_buffer_
+        -portMUX_TYPE recv_mux
+        -InputData input_buffer_
         -static ESP32Controller_ESPNOW* _instance
         -static void static_recv_cb(...)
         +bool begin()
@@ -228,7 +228,8 @@ direction LR
     }
 
     class ESP32Controller_ESPNOW_Response~InputData, OutputData~ {
-        -InputData& input_buffer_
+        -portMUX_TYPE recv_mux
+        -InputData input_buffer_
         -OutputData& output_
         -static ESP32Controller_ESPNOW_Response* _instance
         -static void static_recv_cb(...)
@@ -236,7 +237,7 @@ direction LR
         +bool begin()
         +bool update()
         +void send()
-        +OutputData& set_output()
+        +const OutputData& set_output(OutputData&)
     }
 
     class ESP32Controller_PS4~InputData~ {
@@ -253,7 +254,7 @@ direction LR
     class ESP32Controller_Serial_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
-        +OutputData& set_output()
+        +const OutputData& set_output(OutputData&)
     }
 
     class ESP32Controller_I2C_Master~InputData~ {
@@ -264,11 +265,12 @@ direction LR
     class ESP32Controller_I2C_Master_Response~InputData, OutputData~ {
         -OutputData& output_
         +bool send()
-        +OutputData& set_output()
+        +const OutputData& set_output(OutputData&)
     }
 
     class ESP32Controller_I2C_Slave~InputData~ {
-        -InputData& input_buffer_
+        -portMUX_TYPE recv_mux
+        -InputData input_buffer_
         -static ESP32Controller_I2C_Slave* _instance
         -static void static_recv_cb(int)
         +bool begin()
@@ -276,14 +278,15 @@ direction LR
     }
 
     class ESP32Controller_I2C_Slave_Response~InputData, OutputData~ {
-        -InputData& input_buffer_
+        -portMUX_TYPE recv_mux
+        -InputData input_buffer_
         -OutputData& output_
         -static ESP32Controller_I2C_Slave_Response* _instance
         -static void static_recv_cb(int)
         -static void static_request_cb()
         +bool begin()
         +bool update()
-        +OutputData& set_output()
+        +const OutputData& set_output(OutputData&)
     }
 
     ESP32Controller_Base <|-- ESP32Controller_BluetoothSerial
