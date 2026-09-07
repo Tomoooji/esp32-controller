@@ -3,18 +3,15 @@
  * @brief シリアル通信(UART)で構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-08-27
+ * @date 2026-09-07
  * @copyright Copyright (c) 2026
  * 
  * @note 
  */
 
 #pragma once
-
 #ifdef ESP32
-
 #include <Arduino.h>
-
 #include "ESP32Controller_Base.h"
 
 /** @brief シリアル通信(UART)の設定 */
@@ -121,7 +118,7 @@ public:
    * @brief output オブジェクトを設定
    * 
    * @param new_output 新しく設定するoutputオブジェクトの参照
-   * @retval OutputData& 設定したoutputオブジェクトへの参照
+   * @return 設定したoutputオブジェクトへのconst参照
    * @code
    *  // 実体化してから設定
    *   OutputData new_output;
@@ -137,7 +134,7 @@ public:
    *   );
    * @endcode 
    */
-  OutputData& set_output(OutputData& new_output) {
+  const OutputData& set_output(OutputData& new_output) {
     this->output_ = new_output;
     return this->output_;
   }

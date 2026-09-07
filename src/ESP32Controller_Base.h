@@ -3,16 +3,14 @@
  * @brief 各ライブラリの抽象基底クラスのヘッダ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-08-27
+ * @date 2026-09-07
  * @copyright Copyright (c) 2026
  * 
  * @note 
  */
 
 #pragma once
-
 #ifdef ESP32
-
 #include <Arduino.h>
 
 /**
@@ -62,7 +60,7 @@ public:
    * @return const InputData& 入力データの構造体への参照
    * @note ESP32Controller.get_input().XXで値を参照できる。代入は不可
    */
-  const InputData& get_input() {return this->input_;}
+  const InputData& get_input() const {return this->input_;}
   
   /**
    * @brief configオブジェクトのゲッター関数
@@ -70,7 +68,7 @@ public:
    * @return ConfigData& 設定データの構造体への参照
    * @note ESP32Controller.get_config().XXで値の参照,更新ができる。
    */
-  ConfigData& get_config() {return this->config_;}
+  ConfigData& get_config() const {return this->config_;}
 };
 
 

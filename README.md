@@ -4,7 +4,8 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
-> 2026-08-27    各ファイル名の再検討とクラス名の変更
+> 2026-09-07    いくつかの関数にconstを賦与、なぜかなかったBluetoothSerialのget_outputを実装  
+> 2026-08-27    各ファイル名の再検討とクラス名の変更  
 > 2026-08-15    いくつかの軽微な修正とサンプルコードの検証  
 > 2026-07-28    ESP-NOWのコールバック関数の引数がバージョン間で異なる問題の修正、出力用構造体のセッターを追加  
 > 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正、READMEに注意点の追加  
@@ -173,8 +174,8 @@ classDiagram
 
         +begin() bool
         +update() bool
-        +get_input() const InputData&
-        +get_config() ConfigData&
+        +const get_input() const InputData&
+        +get_config() const ConfigData&
     }
 
     class ConfigData {
@@ -202,7 +203,7 @@ direction LR
         +ESP32Controller_Base(ConfigData&, InputData&)
         +bool begin()*
         +bool update()*
-        +const InputData& get_input()
+        +const InputData& const get_input()
         +ConfigData& get_config()
     }
 

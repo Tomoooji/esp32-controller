@@ -3,7 +3,7 @@
  * @brief I2Cで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-08-27
+ * @date 2026-09-07
  * @copyright Copyright (c) 2026
  * 
  * @attention Slave側にはC++17以降でないと動かないコードが含まれます。
@@ -11,12 +11,9 @@
  */
 
 #pragma once
-
 #ifdef ESP32
-
 #include <Arduino.h>
 #include <Wire.h>
-
 #include "ESP32Controller_Base.h"
 
 /**　@brief I2C通信用の設定　*/
@@ -118,7 +115,7 @@ public:
    * @retval true  送信成功
    * @retval false 送信失敗
    */
-  bool send() {
+  bool send() const {
     // マスターがスレーブへデータを送信
     Wire.beginTransmission(this->config_.address_slave);
     Wire.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
@@ -129,7 +126,7 @@ public:
    * @brief output オブジェクトを設定
    * 
    * @param new_output 新しく設定するoutputオブジェクトの参照
-   * @retval OutputData& 設定したoutputオブジェクトへの参照
+   * @return 設定したoutputオブジェクトへのconst参照
    * @code
    *  // 実体化してから設定
    *   OutputData new_output;
@@ -145,7 +142,7 @@ public:
    *   );
    * @endcode 
    */
-  OutputData& set_output(OutputData& new_output) {
+  const OutputData& set_output(OutputData& new_output) {
     this->output_ = new_output;
     return this->output_;
   }
@@ -378,7 +375,7 @@ public:
    * @brief output オブジェクトを設定
    * 
    * @param new_output 新しく設定するoutputオブジェクトの参照
-   * @retval OutputData& 設定したoutputオブジェクトへの参照
+   * @return 設定したoutputオブジェクトへのconst参照
    * @code
    *  // 実体化してから設定
    *   OutputData new_output;
@@ -394,7 +391,7 @@ public:
    *   );
    * @endcode 
    */
-  OutputData& set_output(OutputData& new_output) {
+  const OutputData& set_output(OutputData& new_output) {
     portENTER_CRITICAL(&this->recv_mux);
     this->output_ = new_output;
     portEXIT_CRITICAL(&this->recv_mux);

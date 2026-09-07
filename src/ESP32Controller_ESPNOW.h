@@ -3,7 +3,7 @@
  * @brief ESP-NOWで構造体をやりとりするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-08-27
+ * @date 2026-09-07
  * @copyright Copyright (c) 2026
  * 
  * @attention C++17以降でないと動かないコードが含まれます。
@@ -11,13 +11,10 @@
  */
 
 #pragma once
-
 #ifdef ESP32
-
 #include <Arduino.h>
 #include <esp_now.h>
 #include <WiFi.h>
-
 #include "ESP32Controller_Base.h"
 
 /** @brief ESP-NOW(受信only)用設定 */
@@ -84,7 +81,6 @@ public:
     // コールバック関数登録 static関数なので複数インスタンス作るとバグる
     _instance = this;
     esp_now_register_recv_cb(static_recv_cb);
-
     return true;
   }
 
@@ -262,7 +258,7 @@ public:
    * @brief 構造体を相手に送る関数
    * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
    */
-  void send() {
+  void send() const {
     esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
   }
 
@@ -270,7 +266,7 @@ public:
    * @brief output オブジェクトを設定
    * 
    * @param new_output 新しく設定するoutputオブジェクトの参照
-   * @retval OutputData& 設定したoutputオブジェクトへの参照
+   * @return 設定したoutputオブジェクトへのconst参照
    * @code
    *  // 実体化してから設定
    *   OutputData new_output;
@@ -286,7 +282,7 @@ public:
    *   );
    * @endcode 
    */
-  OutputData& set_output(OutputData& new_output) {
+  const OutputData& set_output(OutputData& new_output) {
     this->output_ = new_output;
     return this->output_;
   }

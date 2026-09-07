@@ -3,19 +3,16 @@
  * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-08-27
+ * @date 2026-09-07
  * @copyright Copyright (c) 2026
  * 
  * @todo SPPまわり
  */
 
 #pragma once
-
 #ifdef ESP32
-
 #include <Arduino.h>
 #include <BluetoothSerial.h>
-
 #include "ESP32Controller_Base.h"
 
 /** @brief BluetoothSerial用設定 */
@@ -108,8 +105,33 @@ public:
    * @retval true  送信成功
    * @retval false 送信失敗
    */
-  bool send() {
+  bool send() const {
     return this->bluetoothserial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
+  }
+
+  /**
+   * @brief output オブジェクトを設定
+   * 
+   * @param new_output 新しく設定するoutputオブジェクトの参照
+   * @return 設定したoutputオブジェクトへのconst参照
+   * @code
+   *  // 実体化してから設定
+   *   OutputData new_output;
+   *   new_output.value = 42;
+   *   controller.set_output(new_output);
+   * 
+   *  // 実体化せずに直接設定
+   *   controller.set_output(
+   *    // ~C++17
+   *     OutputData{42}
+   *    // C++20以降
+   *     OutputData{.value = 42}
+   *   );
+   * @endcode 
+   */
+  const OutputData& set_output(OutputData& new_output) {
+    this->output_ = new_output;
+    return this->output_;
   }
 };
 
