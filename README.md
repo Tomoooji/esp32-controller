@@ -4,7 +4,7 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
-> 2026-09-07    いくつかの関数にconstを賦与、なぜかなかったBluetoothSerialのget_outputを実装  
+> 2026-09-07    いくつかの関数にconstを賦与、なぜかなかったBluetoothSerialのget_outputを実装、クラス図の修正  
 > 2026-08-27    各ファイル名の再検討とクラス名の変更  
 > 2026-08-15    いくつかの軽微な修正とサンプルコードの検証  
 > 2026-07-28    ESP-NOWのコールバック関数の引数がバージョン間で異なる問題の修正、出力用構造体のセッターを追加  
@@ -172,10 +172,10 @@ classDiagram
         <<abstract>>
         #ConfigData& config_
         #InputData& input_
-        +begin() bool
-        +update() bool
-        +get_input() const InputData&
-        +get_config() ConfigData&
+        +begin() :bool
+        +update() :bool
+        +get_input() const :const InputData&
+        +get_config() const :ConfigData&
     }
 
     class ConfigData {
@@ -200,22 +200,22 @@ direction LR
         <<abstract>>
         #ConfigData& config_
         #InputData& input_
-        +begin() bool
-        +update() bool
-        +const InputData& get_input() const
-        +ConfigData& get_config()
+        +begin() :bool
+        +update() :bool
+        +get_input() const :const InputData&
+        +get_config() const :ConfigData&
     }
 
     class ESP32Controller_BluetoothSerial~InputData~ {
         #BluetoothSerial bluetoothserial_
-        +bool begin()
-        +bool update()
+        +begin() :bool
+        +update() :bool
     }
 
     class ESP32Controller_BluetoothSerial_Response~InputData, OutputData~ {
         -OutputData& output_
-        +bool send()
-        +const OutputData& set_output(OutputData&)
+        +send() const :bool
+        +get_output() const :const OutputData&
     }
 
     class ESP32Controller_ESPNOW~InputData~ {
@@ -223,8 +223,8 @@ direction LR
         -InputData input_buffer_
         -static ESP32Controller_ESPNOW* _instance
         -static void static_recv_cb(...)
-        +bool begin()
-        +bool update()
+        +begin() :bool
+        +update() :bool
     }
 
     class ESP32Controller_ESPNOW_Response~InputData, OutputData~ {
@@ -234,38 +234,38 @@ direction LR
         -static ESP32Controller_ESPNOW_Response* _instance
         -static void static_recv_cb(...)
         -static void static_send_cb(...)
-        +bool begin()
-        +bool update()
-        +void send()
-        +const OutputData& set_output(OutputData&)
+        +begin() :bool 
+        +update() :bool
+        +send() :void
+        +set_output(OutputData&) const :const OutputData&
     }
 
     class ESP32Controller_PS4~InputData~ {
-        +bool begin()
-        +bool update()
+        +begin() :bool
+        +update() :bool
     }
 
     class ESP32Controller_Serial~InputData~ {
         -HardwareSerial& serial_
-        +bool begin()
-        +bool update()
+        +begin() :bool
+        +update() :bool
     }
 
     class ESP32Controller_Serial_Response~InputData, OutputData~ {
         -OutputData& output_
-        +bool send()
-        +const OutputData& set_output(OutputData&)
+        +send() const :bool
+        +get_output() const :const OutputData&
     }
 
     class ESP32Controller_I2C_Master~InputData~ {
-        +bool begin()
-        +bool update()
+        +begin() :bool
+        +update() :bool
     }
 
     class ESP32Controller_I2C_Master_Response~InputData, OutputData~ {
         -OutputData& output_
-        +bool send()
-        +const OutputData& set_output(OutputData&)
+        +send() const :bool
+        +get_output() const :const OutputData&
     }
 
     class ESP32Controller_I2C_Slave~InputData~ {
@@ -273,8 +273,8 @@ direction LR
         -InputData input_buffer_
         -static ESP32Controller_I2C_Slave* _instance
         -static void static_recv_cb(int)
-        +bool begin()
-        +bool update()
+        +begin() :bool
+        +update() :bool
     }
 
     class ESP32Controller_I2C_Slave_Response~InputData, OutputData~ {
@@ -284,9 +284,9 @@ direction LR
         -static ESP32Controller_I2C_Slave_Response* _instance
         -static void static_recv_cb(int)
         -static void static_request_cb()
-        +bool begin()
-        +bool update()
-        +const OutputData& set_output(OutputData&)
+        +begin() :bool
+        +update() :bool
+        +get_output() const :const OutputData&
     }
 
     ESP32Controller_Base <|-- ESP32Controller_BluetoothSerial
@@ -324,4 +324,4 @@ This is required because the project depends on [PS4_Controller_Host](https://gi
 ---
 
 作成者:Tomoooji  
-最終更新:2026-08-27  
+最終更新:2026-09-07  
