@@ -39,7 +39,7 @@ template <typename InputData>
 class ESP32ControllerDummy : public ESP32ControllerBase<ESP32ControllerDummy::ConfigDummy, InputData> {
 private:
 public:
-  struct ConfigDummy : public ESP32ControllerInterface::ConfigStruct {};
+  struct ConfigDummy : public ESP32ControllerBase<ConfigDummy, InputData>::ConfigStruct {};
   ESP32ControllerDummy(ConfigDummy &&config_data, InputData &&input_data)
       : ESP32ControllerBase<ConfigDummy, InputData>(ConfigDummy{std::move(config_data)}, std::move(input_data)) {}
   bool begin() override {
@@ -53,7 +53,7 @@ public:
 template <typename InputData, typename OutputData>
 class ESP32ControllerResponseDummy : public ESP32ControllerResponseBase<ESP32ControllerDummy<InputData>, ESP32ControllerResponseDummy::ConfigResponseDummy, InputData, OutputData> {
 public:
-  struct ConfigResponseDummy : public ESP32ControllerDummy<InputData>::ConfigStruct {};
+  struct ConfigResponseDummy : public ESP32ControllerDummy<InputData>::ConfigDummy {};
   ESP32ControllerResponseDummy(ConfigResponseDummy &&config_data, InputData &&input_data, OutputData &&output_data)
       : ESP32ControllerResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy, InputData, OutputData>(
         std::move(config_data), std::move(input_data), std::move(output_data)) {}
