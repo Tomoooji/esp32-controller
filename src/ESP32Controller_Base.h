@@ -1,91 +1,70 @@
-/**
- * @file ESP32Controller_Base.h
- * @brief 各ライブラリの抽象基底クラスのヘッダ
- * 
- * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-09-07
- * @copyright Copyright (c) 2026
- * 
- * @note 
- */
-
 #pragma once
 #ifdef ESP32
 #include <Arduino.h>
 
-/**
- * @brief 抽象基底クラス
- * 
- * @tparam ConfigData 設定値とかフラグの格納用
- * @tparam InputData  入力されるデータの格納用
- * @attention このクラスは継承しないと実体化できない抽象基底クラスです。必ず継承先でbool begin()とbool update()を実装してください。
- */
-template <typename ConfigData, typename InputData>
-class ESP32Controller_Base {
-
-protected:
-  ConfigData& config_;
-  InputData& input_;
-
+class ESP32ControllerInterface {
 public:
-  /**
-   * @brief ESP32Controller_Base オブジェクトを作成
-   * 
-   * @param config_data 設定用構造体の参照
-   * @param input_data  受け取るデータ(構造体)の参照
-   */
-  explicit ESP32Controller_Base(ConfigData& config_data, InputData& input_data):config_(config_data),input_(input_data) {}
-
-  /**
-   * @brief 初期化用の純粋仮想関数
-   * 
-   * @retval true  初期化成功
-   * @retval false 初期化失敗
-   * @note setup内で呼ぶ。1行if文とかでreturnすると良い
-   */
+  virtual ~ESP32ControllerInterface() = default;
   virtual bool begin() = 0;
-  
-  /**
-   * @brief 入力更新用の純粋仮想関数
-   * 
-   * @retval true  更新有り
-   * @retval false 更新なし
-   * @note loop内で呼ぶ。if文に突っ込んでロボットの動作を全部その中に入れると暴走対策になる
-   */
   virtual bool update() = 0;
-
-  /**
-   * @brief inputオブジェクトのゲッター関数
-   * 
-   * @return const InputData& 入力データの構造体への参照
-   * @note ESP32Controller.get_input().XXで値を参照できる。代入は不可
-   */
-  const InputData& get_input() const {return this->input_;}
-  
-  /**
-   * @brief configオブジェクトのゲッター関数
-   * 
-   * @return ConfigData& 設定データの構造体への参照
-   * @note ESP32Controller.get_config().XXで値の参照,更新ができる。
-   */
-  ConfigData& get_config() const {return this->config_;}
 };
 
+template <typename ConfigData, typename InputData>
+class ESP32ControllerBase : public ESP32ControllerInterface {
+protected:
+  struct ConfigStruct{};
+  ConfigData config_;
+  InputData input_;
 
-///////////////////////////
-/*
-struct Config_RemoteXY {};
-
-class ESP32Controller_RemoteXY : public ESP32Controller_Base<Config_RemoteXY,...> {
 public:
+  explicit ESP32ControllerBase(ConfigData &&config_data, InputData &&input_data)
+      : config_(std::move(config_data)), input_(std::move(input_data)) {}
+  InputData &input() { return this->input_; }
+  ConfigData &config() { return this->config_; }
+};
+
+template <std::derived_from<ESP32ControllerInterface> Controller, typename ConfigData, typename InputData, typename OutputData>
+class ESP32ControllerResponseBase : public Controller {
+protected:
+  OutputData output_;
+
+public:
+  explicit ESP32ControllerResponseBase(ConfigData &&config_data, InputData &&input_data, OutputData &&output_data)
+      : Controller(std::move(config_data), std::move(input_data)), output_(std::move(output_data)) {}
+  virtual void _send() = 0;
+  OutputData &output() { return this->output_; }
+};
+
+template <typename InputData>
+class ESP32ControllerDummy : public ESP32ControllerBase<ESP32ControllerDummy::ConfigDummy, InputData> {
+private:
+public:
+  struct ConfigDummy : public ESP32ControllerInterface::ConfigStruct {};
+  ESP32ControllerDummy(ConfigDummy &&config_data, InputData &&input_data)
+      : ESP32ControllerBase<ConfigDummy, InputData>(ConfigDummy{std::move(config_data)}, std::move(input_data)) {}
   bool begin() override {
-    RemoteXY_Init();
+    return true;
   }
   bool update() override {
-    RemoteXYEngine.handler();
+    return false;
   }
 };
-*/
-///////////////////////////
 
+template <typename InputData, typename OutputData>
+class ESP32ControllerResponseDummy : public ESP32ControllerResponseBase<ESP32ControllerDummy<InputData>, ESP32ControllerResponseDummy::ConfigResponseDummy, InputData, OutputData> {
+public:
+  struct ConfigResponseDummy : public ESP32ControllerDummy<InputData>::ConfigStruct {};
+  ESP32ControllerResponseDummy(ConfigResponseDummy &&config_data, InputData &&input_data, OutputData &&output_data)
+      : ESP32ControllerResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy, InputData, OutputData>(
+        std::move(config_data), std::move(input_data), std::move(output_data)) {}
+  bool begin() override {
+    return true;
+  }
+  bool update() override {
+    return false;
+  }
+  void _send() override {
+    return;
+  }
+};
 #endif
