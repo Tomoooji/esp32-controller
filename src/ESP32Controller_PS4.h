@@ -11,29 +11,9 @@
  */
 
 #pragma once
-
 #ifdef ESP32
-
-#include <Arduino.h>
-
 #include <PS4Controller.h>
-
 #include "ESP32Controller_Base.h"
-
-/** 
- * @brief DualShock4との通信用設定
- * 
- * @code 
- *  // ~C++17
- *   Config_PS4 config{"00:1A:2B:3C:4D:5E"};
- *  // C++20からは指示付き初期化子が使える
- *   Config_PS4 config{.mac = "00:1A:2B:3C:4D:5E"}
- * @endcode
- * @note MACアドレスなしで初期化するとESP32のMACアドレスが使われる。
- */
-struct Config_PS4 {
-  const char* mac = nullptr;
-};
 
 /**
  * @brief DualShock4から入力値を受け取るクラス
@@ -42,10 +22,26 @@ struct Config_PS4 {
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
 template <typename InputData>
-class ESP32Controller_PS4 :public ESP32Controller_Base<Config_PS4,InputData> {
+class ESP32Controller_PS4 : public ESP32ControllerBase<ESP32Controller_PS4::Config_PS4, InputData> {
+protected:
 public:
-  using ESP32Controller_Base<Config_PS4,InputData>::ESP32Controller_Base;
-  
+  /** 
+   * @brief DualShock4との通信用設定
+   * 
+   * @code 
+   *  // ~C++17
+   *   Config_PS4 config{"00:1A:2B:3C:4D:5E"};
+   *  // C++20からは指示付き初期化子が使える
+   *   Config_PS4 config{.mac = "00:1A:2B:3C:4D:5E"}
+   * @endcode
+   * @note MACアドレスなしで初期化するとESP32のMACアドレスが使われる。
+   */
+  struct Config_PS4 : public ESP32ControllerBase<Config_PS4, InputData>::ConfigStruct {
+    const char* mac = nullptr;
+  };
+
+  using ESP32ControllerBase<Config_PS4, InputData>::ESP32ControllerBase;
+
   /**
    * @brief setup()で呼ばれる初期化関数
    * 
@@ -71,6 +67,7 @@ public:
     return false;
   }
 };
+
 template <typename InputData>
 using ESP32Controller = ESP32Controller_PS4<InputData>;
 

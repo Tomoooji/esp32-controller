@@ -11,15 +11,8 @@
 
 #pragma once
 #ifdef ESP32
-#include <Arduino.h>
 #include <BluetoothSerial.h>
 #include "ESP32Controller_Base.h"
-
-/** @brief BluetoothSerial用設定 */
-struct Config_BluetoothSerial {
-  const char* device_name = "ESP32_BT"; ///< デバイス名
-  bool as_master = false; ///< trueならマスター、falseならスレーブ
-};
 
 /**
  * @brief BluetoothSerialで構造体を受信するクラス
@@ -28,13 +21,19 @@ struct Config_BluetoothSerial {
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class ESP32Controller_BluetoothSerial : public ESP32Controller_Base<Config_BluetoothSerial,InputData> {
-
+class ESP32Controller_BluetoothSerial : public ESP32ControllerBase<ESP32Controller_BluetoothSerial::Config_BluetoothSerial, InputData> {
 protected:
   BluetoothSerial bluetoothserial_;
 
 public:
-  using ESP32Controller_Base<Config_BluetoothSerial,InputData>::ESP32Controller_Base;
+  /** @brief BluetoothSerial用設定 */
+  struct Config_BluetoothSerial  : public ESP32ControllerBase<Config_BluetoothSerial, InputData>::ConfigStruct {
+    const char* device_name = "ESP32_BT"; ///< デバイス名
+    bool as_master = false; ///< trueならマスター、falseならスレーブ
+  };
+
+  /** @brief コンストラクタ */
+  using ESP32ControllerBase<Config_BluetoothSerial, InputData>::ESP32ControllerBase;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -49,9 +48,9 @@ public:
       this->bluetoothserial_.connect(this->config_.device_name);
       return this->bluetoothserial_.connected();
     }
-    return true;
+    return true; // スレーブは接続待ちなので成功扱い
   }
-
+  
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
    * @details データ量を指定して読み込み、余った分は捨てる
@@ -71,9 +70,9 @@ public:
   }
 };
 
+
 template <typename InputData>
 using ESP32Controller = ESP32Controller_BluetoothSerial<InputData>;
-
 
 /**
  * @brief BluetoothSerialで構造体を送受信するクラス
@@ -83,59 +82,21 @@ using ESP32Controller = ESP32Controller_BluetoothSerial<InputData>;
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
-class ESP32Controller_BluetoothSerial_Response : public ESP32Controller_BluetoothSerial<InputData> {
-
-private:
-  OutputData& output_;
-
+class ESP32Controller_Response_BluetoothSerial : public ESP32ControllerResponseBase<ESP32Controller_BluetoothSerial<InputData>, ESP32Controller_BluetoothSerial::Config_BluetoothSerial, InputData, OutputData> {
 public:
-  /**
-   * @brief ESP32Controller_BluetoothSerial_Response オブジェクトを作成
-   * 
-   * @param config_data 設定用構造体の参照
-   * @param input_data  受け取るデータ(構造体)の参照
-   * @param output_data 送るデータ(構造体)の参照
-   */
-  ESP32Controller_BluetoothSerial_Response(Config_BluetoothSerial& config_data, InputData& input_data, OutputData& output_data):
-    ESP32Controller_BluetoothSerial<InputData>(config_data,input_data),output_(output_data) {}
-
+  using ESP32ControllerResponseBase<ESP32Controller_BluetoothSerial<InputData>, ESP32Controller_BluetoothSerial::Config_BluetoothSerial, InputData, OutputData>::ESP32ControllerResponseBase;
   /**
    * @brief 構造体を相手に送る関数
    * 
    * @retval true  送信成功
    * @retval false 送信失敗
    */
-  bool send() const {
+  bool send() override {
     return this->bluetoothserial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
-  }
-
-  /**
-   * @brief output オブジェクトを設定
-   * 
-   * @param new_output 新しく設定するoutputオブジェクトの参照
-   * @return 設定したoutputオブジェクトへのconst参照
-   * @code
-   *  // 実体化してから設定
-   *   OutputData new_output;
-   *   new_output.value = 42;
-   *   controller.set_output(new_output);
-   * 
-   *  // 実体化せずに直接設定
-   *   controller.set_output(
-   *    // ~C++17
-   *     OutputData{42}
-   *    // C++20以降
-   *     OutputData{.value = 42}
-   *   );
-   * @endcode 
-   */
-  const OutputData& set_output(OutputData& new_output) {
-    this->output_ = new_output;
-    return this->output_;
   }
 };
 
 template <typename InputData, typename OutputData>
-using ESP32Controller_Response = ESP32Controller_BluetoothSerial_Response<InputData,OutputData>;
+using ESP32Controller_Response = ESP32Controller_Response_BluetoothSerial<InputData,OutputData>;
 
 #endif

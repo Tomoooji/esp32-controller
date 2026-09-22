@@ -11,15 +11,8 @@
 
 #pragma once
 #ifdef ESP32
-#include <Arduino.h>
 #include "ESP32Controller_Base.h"
 
-/** @brief シリアル通信(UART)の設定 */
-struct Config_Serial {
-  int baudrate = 115200;
-  int Rx = -1;
-  int Tx = -1;
-};
 
 /**
  * @brief シリアル通信(UART)で構造体を受け取るクラス
@@ -28,12 +21,17 @@ struct Config_Serial {
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class ESP32Controller_Serial : public ESP32Controller_Base<Config_Serial,InputData> {
-
-private:
+class ESP32Controller_Serial : public ESP32ControllerBase<ESP32Controller_Serial::Config_Serial, InputData> {
+protected:
   HardwareSerial& serial_;
 
 public:
+  /** @brief シリアル通信(UART)の設定 */
+  struct Config_Serial : public ESP32ControllerBase<Config_Serial, InputData>::ConfigStruct {
+    int baudrate = 115200;
+    int Rx = -1;
+    int Tx = -1;
+  };
   /**
    * @brief ESP32Controller_Serial オブジェクトを作成
    * 
@@ -41,8 +39,8 @@ public:
    * @param config_data 設定用構造体の参照
    * @param input_data 受け取るデータ(構造体)の参照
    */
-  ESP32Controller_Serial(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data):
-    ESP32Controller_Base<Config_Serial,InputData>(config_data,input_data),serial_(serial) {}
+  ESP32Controller_Serial(HardwareSerial& serial, Config_Serial &&config_data, InputData &&input_data)
+  : ESP32ControllerBase<Config_Serial, InputData>(Config_Serial{std::move(config_data)}, std::move(input_data)), serial_(serial) {}
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -74,6 +72,7 @@ public:
     return false;
   }
 };
+
 template <typename InputData>
 using ESP32Controller = ESP32Controller_Serial<InputData>;
 
@@ -87,11 +86,7 @@ using ESP32Controller = ESP32Controller_Serial<InputData>;
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
-class ESP32Controller_Serial_Response : public ESP32Controller_Serial<InputData> {
-
-private:
-  OutputData& output_;
-
+class ESP32Controller_Response_Serial : public ESP32ControllerResponseBase<ESP32Controller_Serial<InputData>, ESP32Controller_Serial<InputData>::Config_Serial, InputData, OutputData> {
 public:
   /**
    * @brief ESP32Controller_Serial_Response オブジェクトを作成
@@ -101,8 +96,9 @@ public:
    * @param input_data 受け取るデータ(構造体)の参照
    * @param output_data 送るデータ(構造体)の参照
    */
-  ESP32Controller_Serial_Response(HardwareSerial& serial, Config_Serial& config_data, InputData& input_data, OutputData& output_data):
-    ESP32Controller_Serial<InputData>(serial,config_data,input_data),output_ {output_data} {}
+  ESP32Controller_Response_Serial(HardwareSerial& serial, typename ESP32Controller_Serial<InputData>::Config_Serial &&config_data, InputData &&input_data, OutputData &&output_data)
+      : ESP32ControllerResponseBase<ESP32Controller_Serial<InputData>, typename ESP32Controller_Serial<InputData>::Config_Serial, InputData, OutputData>(
+        std::move(config_data), std::move(input_data), std::move(output_data)), serial_(serial) {}
 
   /**
    * @brief loop()内で呼ばれる値の更新を行う関数
@@ -110,37 +106,12 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool send() {
+  bool send() override {
     return this->serial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
-  }
-  
-  /**
-   * @brief output オブジェクトを設定
-   * 
-   * @param new_output 新しく設定するoutputオブジェクトの参照
-   * @return 設定したoutputオブジェクトへのconst参照
-   * @code
-   *  // 実体化してから設定
-   *   OutputData new_output;
-   *   new_output.value = 42;
-   *   controller.set_output(new_output);
-   * 
-   *  // 実体化せずに直接設定
-   *   controller.set_output(
-   *    // ~C++17
-   *     OutputData{42}
-   *    // C++20以降
-   *     OutputData{.value = 42}
-   *   );
-   * @endcode 
-   */
-  const OutputData& set_output(OutputData& new_output) {
-    this->output_ = new_output;
-    return this->output_;
   }
 };
 
 template <typename InputData, typename OutputData>
-using ESP32Controller_Response = ESP32Controller_Serial_Response<InputData,OutputData>;
+using ESP32Controller_Response = ESP32Controller_Response_Serial<InputData,OutputData>;
 
 #endif
