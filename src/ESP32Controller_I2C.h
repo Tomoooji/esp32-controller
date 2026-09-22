@@ -2,12 +2,14 @@
  * @file ESP32Controller_I2C.h
  * @brief I2Cで構造体をやりとりするライブラリ
  * 
- * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-09-07
- * @copyright Copyright (c) 2026
- * 
- * @attention Slave側にはC++17以降でないと動かないコードが含まれます。
+ * @attention C++20以上が必要です。
+ * @note 入出力用の構造体には__attribute__((__packed__))を付けて宣言し、パディングを無効化することを推奨します。
  * @note 基本的に機体側はMasterとして運用、Slaveは一旦放置！
+ * 
+ * @author Tomoooji (https://github.com/Tomoooji)
+ * @version 2.0.0
+ * @date 2026-09-22
+ * @copyright Copyright (c) 2026
  */
 
 #pragma once

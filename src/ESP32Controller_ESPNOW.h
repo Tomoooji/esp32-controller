@@ -2,12 +2,14 @@
  * @file ESP32Controller_ESPNOW.h
  * @brief ESP-NOWで構造体をやりとりするライブラリ
  * 
- * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-09-07
- * @copyright Copyright (c) 2026
- * 
- * @attention C++17以降でないと動かないコードが含まれます。
+ * @attention C++20以上が必要です。
  * @attention 同じInputDataを指定したクラスでインスタンスを複数作るとコールバック関数が奪われます。
+ * @note 入出力用の構造体には__attribute__((__packed__))を付けて宣言し、パディングを無効化することを推奨します。
+ * 
+ * @author Tomoooji (https://github.com/Tomoooji)
+ * @version 2.0.0
+ * @date 2026-09-22
+ * @copyright Copyright (c) 2026
  */
 
 #pragma once
@@ -36,13 +38,14 @@ protected:
    * @details 受け取ったデータをinput_buffer_にコピーし、configの新規受信フラグを立てる
    * 
    * @attention inputはパック済みの構造体である必要がある
-   * @param info 送り手のアドレスなどが入ってる(Arduino Coreのバージョン次第ではuint8_t*にする必要あり)
+   * @param addr (旧Ver用)送り手のアドレス
+   * @param info (新Ver用)送り手のアドレスなどが入ってる
    * @param data 受け取ったデータ
    * @param len  受け取ったデータのサイズ
    * @see ESP32Controller_ESPNOW::static_recv_cb
    */
 #if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(5, 0, 0)
-  static void static_recv_cb(const uint8_t* info, const uint8_t* data, int len) {
+  static void static_recv_cb(const uint8_t* addr, const uint8_t* data, int len) {
     if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
     portENTER_CRITICAL(&_instance->recv_mux);
     memcpy(&_instance->input_buffer_, data, sizeof(InputData));
@@ -65,7 +68,9 @@ public:
     volatile bool receive_new = false; ///< 値の更新フラグ
     bool is_connect = false; ///< 受信できているかどうかのフラグ
   };
+
   using Base<Config, InputData>::Base;
+  
   /**
    * @brief setup()で呼ばれる初期化関数
    * @details WiFiのモード設定、ESP_NOWの初期化、コールバック関数の登録を行う

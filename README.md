@@ -4,16 +4,8 @@ ESP32を有線/無線で操作する汎用コントローラークラス
 
 > ## 変更履歴
 >
-> 2026-09-07    いくつかの関数にconstを賦与、なぜかなかったBluetoothSerialのget_outputを実装、クラス図の修正  
-> 2026-08-27    各ファイル名の再検討とクラス名の変更  
-> 2026-08-15    いくつかの軽微な修正とサンプルコードの検証  
-> 2026-07-28    ESP-NOWのコールバック関数の引数がバージョン間で異なる問題の修正、出力用構造体のセッターを追加  
-> 2026-07-27    サンプルスケッチの追加、BluetoothSerialのコードガバ修正、READMEに注意点の追加  
-> 2026-07-26    I2C,ESP-NOWにダブルバッファを実装(未検証)  
-> 2026-07-25    ファイル名、変数名などの一部改訂など  
-> 2026-07-24    PlatfromIOに対応(一部互換性問題あり)、C++17への後方互換  
-> 2026-07-23    READMEに使用目的の追加、ソースコード内のコメント増補、命名の見直し、クラス図の追加  
-> 2026-07-18    BluetoothSerial対応、Doxygen形式コメントの追加、I2CのデフォルトをMasterに変更  
+> 2026-09-20    Ver2.0.0に更新  
+> 2026-08-27    Ver1.0.0に更新  
 > 2026-07-15    初期Verの公開  
 
 ## 使用目的
@@ -44,7 +36,7 @@ esp32-controller/
 │     ├─ serial_rimocon.py          # Raspberry Piから構造体ベースのシリアル通信をするプログラム
 │     └─ ESP32.json                 # 通信用設定ファイル
 ├─ src/
-│  ├─ ESP32Controller_Base.h        # 基底クラスのヘッダファイル  直接使うことはない
+│  ├─ ESP32Controller_Base.h        # 基底クラス群のヘッダファイル  直接使うことはない
 │  ├─ ESP32Controller_PS4.h         # PS4コントローラーとBluetoothで通信するクラスのヘッダファイル
 │  ├─ ESP32Controller_Serial.h      # シリアル通信(UART)で通信するクラスのヘッダファイル　双方向verもある
 │  ├─ ESP32Controller_I2C.h         # I2C通信で通信するクラスのヘッダファイル　双方向verもある
@@ -69,10 +61,14 @@ ArduinoIDEのESP32を想定しています。
 - ~~(RemoteXY ver. )~~
 
 PlatformIOにも対応した...はず  
-platformio.iniに以下を追記してください。  
+platformio.iniを以下のように設定してください。  
 ```
+platform = https://github.com/pioarduino/platform-espressif32/releases/download/53.03.10/platform-espressif32.zip
+board = esp32dev
+framework = arduino
+build_unflags = -std=gnu++11
+build_flags = -std=gnu++20
 lib_deps = https://github.com/Tomoooji/esp32-controller
-build_flags = -std=gnu++17 // ESP-NOW/I2Cスレーブを使用する場合
 ```
 PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていないためledcAttachやESP-NOWのコールバック関数の引数の型が最新ではないです。適宜旧verに変更して使用してください。
 
@@ -84,6 +80,141 @@ PlatformIOの公式がEspressif Arduino 3.xを公式にサポートしていな�
    画面下に「ライブラリがインストールされました」と出たら成功！
    (ArduinoIDEやESP32のボード、外部ライブラリのバージョンに注意)
 
+## クラスを追加するとき
+```c++
+// 全てのクラスはESP32ControllerInternal名前空間内に定義されているので、
+// 新しくクラスを作る場合はusing namespace ESP32ControllerInternal;を宣言するか、
+// ESP32ControllerInternal::をつける必要がある
+namespace ESP32ControllerInternal {
+
+/* ----受信のみを行うクラスの場合---- */
+// InputDataはユーザーが定義した構造体をtemplateに渡す
+template <typename InputData>
+class ESP32ControllerDummy : public Base<ESP32ControllerDummy::ConfigDummy, InputData> {
+public:
+  // Baseに定義されているConfigStructを継承してConfigDummyを定義することで、クラスごとに異なる設定用構造体を持てる
+  struct ConfigDummy : public Base<ConfigDummy, InputData>::ConfigStruct {};
+
+  // コンストラクタはBaseのコンストラクタを呼び出すだけでよい
+  using Base<ConfigDummy, InputData>::Base;
+  // 自前で定義する場合はConfigDummyとInputDataをstd::move()してBaseのコンストラクタに渡す
+  ESP32ControllerDummy(ConfigDummy &&config_data, InputData &&input_data)
+      : Base<ConfigDummy, InputData>(ConfigDummy{std::move(config_data)}, std::move(input_data)) {}
+
+  // bool begin()とbool update()をoverrideして定義する必要がある
+  bool begin() override {
+    return true;
+  }
+  bool update() override {
+    return false;
+  }
+  // Interface(Baseの親)に定義されているInputData& input()と ConfigResponseDummy& config()を用いてそれぞれのデータメンバにアクセスできる。(非同期にデータを受信する場合は別途bufferを用意し,update()内でCriticalSectionを使ってbufferにOutputDataの実体をコピーして送信する必要がある)
+};
+
+/* ----送受信用のクラスの場合---- */
+// 送信用の構造体もユーザーが定義してtemplateに渡すことで通信相手に送信することができる
+template <typename InputData, typename OutputData>
+class ESP32ControllerResponseDummy : public ResponseBase<ESP32ControllerDummy<InputData>,ESP32ControllerResponseDummy::ConfigResponseDummy, InputData, OutputData> {
+public:
+  // ConfigResponseDummyはESP32ControllerDummyのConfigDummyを継承している(継承せずにConfigDummyをそのまま使うこともできる)
+  struct ConfigResponseDummy : public ESP32ControllerDummy<InputData>::ConfigDummy {};
+
+  // コンストラクタはResponseBaseのコンストラクタを呼び出すだけでよい
+  using ResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy,InputData, OutputData>::ResponseBase;
+  // 自前で定義する場合はConfigResponseDummyとInputData,OutputDataをstd::move()してResponseBaseのコンストラクタに渡す
+  ESP32ControllerResponseDummy(ConfigResponseDummy &&config_data, InputData &&input_data, OutputData &&output_data)
+      : ResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy, InputData, OutputData>(
+        std::move(config_data), std::move(input_data), std::move(output_data)) {}
+
+  // bool begin()とbool update()はESP32ControllerDummyのものをそのまま使えるのでオーバーライドする必要はないが、send()はESP32ControllerDummyにはないのでオーバーライドする必要がある
+  bool begin() override {
+    return true;
+  }
+  bool update() override {
+    return false;
+  }
+  bool send() override {
+    return true;
+  }
+  // 受信用クラスと同様、Interfaceに定義されているInputData& input()と ConfigResponseDummy& config()を用いてそれぞれのデータメンバにアクセスできる。(非同期な受信を行う場合の注意点も同様)
+  // また、ResponseBaseに定義されているOutputData& output()を使うことでデータメンバであるOutputDataの実体に対する参照を取得できる。(これも非同期にデータを送信する場合は別途bufferを用意し,send()内でCriticalSectionを使ってbufferにOutputDataの実体をコピーして送信する必要がある)
+};
+
+} // namespace ESP32ControllerInternal
+
+using ESP32Controller = ESP32ControllerInternal::ESP32ControllerDummy;
+using ESP32ControllerResponse = ESP32ControllerInternal::ESP32ControllerResponseDummy;
+```
+## 使用例
+```c++
+// データを受信するだけの場合
+#include "ESP32Controller_Dummy.h"
+
+struct InputData {
+  int32_t value;
+} __attribute__((__packed__));
+
+ESP32Controller<InputData> controller(
+    {/*ConfigDummyの初期化*/}, {0}
+);
+
+void setup() {
+  Serial.begin(115200);
+  if (!controller.begin()) {
+    Serial.println("Controller begin failed");
+    while (1) {
+      delay(1000);
+    }
+  }
+}
+
+void loop() {
+  if (controller.update()) {
+    Serial.println(controller.input().value);
+  } else {
+    Serial.println("Controller update failed");
+  }
+}
+```
+```c++
+// データを送受信する場合
+#include "ESP32Controller_Dummy.h"
+
+struct InputData {
+  int32_t value;
+} __attribute__((__packed__));
+
+struct OutputData {
+  int32_t value;
+} __attribute__((__packed__));
+
+ESP32ControllerResponse<InputData, OutputData> controller(
+    {/*ConfigResponseDummyの初期化*/}, {0}, {0}
+);
+
+void setup() {
+  Serial.begin(115200);
+  if (!controller.begin()) {
+    Serial.println("Controller begin failed");
+    while (1) {
+      delay(1000);
+    }
+  }
+}
+
+void loop() {
+  if (controller.update()) {
+    Serial.println(controller.input().value);
+    controller.output().value = 1234;
+    if (!controller.send()) {
+      Serial.println("Controller send failed");
+    }
+  } else {
+    Serial.println("Controller update failed");
+  }
+}
+```
+---
 ## 使い方
 
 1. ``#include <ESP32Controller_{操作方法}.h>``でインクルード
