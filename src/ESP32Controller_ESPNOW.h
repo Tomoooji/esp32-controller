@@ -61,6 +61,7 @@ public:
   /** @brief ESP-NOW(受信only)用設定 */
   struct Config_ESPNOW : public ESP32ControllerBase<Config_ESPNOW, InputData>::ConfigStruct {
     volatile bool receive_new = false; ///< 値の更新フラグ
+    bool is_connect = false; ///< 受信できているかどうかのフラグ
   };
   using ESP32ControllerBase<Config_ESPNOW, InputData>::ESP32ControllerBase;
   /**
@@ -77,6 +78,7 @@ public:
     // コールバック関数登録 static関数なので複数インスタンス作るとバグる
     _instance = this;
     esp_now_register_recv_cb(static_recv_cb);
+    this->config_.is_connect = true;
     return true;
   }
 
@@ -90,17 +92,17 @@ public:
    * @see Controller_ESPNOW_Response::update
    */
   bool update() override {
+    portENTER_CRITICAL(&this->recv_mux);
+    // ここに巨大な処理を入れると大変だけどそもそもESP-NOWが扱えるデータ量(250バイト)的にmemcpyしてもそんなに重たくない...はず
     if (this->config_.receive_new) {
-      
-      portENTER_CRITICAL(&this->recv_mux);
-      // ここに巨大な処理を入れると大変だけどそもそもESP-NOWが扱えるデータ量(250バイト)的にmemcpyしてもそんなに重たくない...はず
       memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
       this->config_.receive_new = false;
-      portEXIT_CRITICAL(&this->recv_mux);
-      
-      return true;
+      this->config_.is_connect = true;      
+    } else {
+      this->config_.is_connect = false;
     }
-    return false;
+    portEXIT_CRITICAL(&this->recv_mux);
+    return this->config_.is_connect;
   }
 };
 
@@ -190,10 +192,11 @@ public:
     _instance = this;
     esp_now_register_recv_cb(static_recv_cb);
     esp_now_register_send_cb(static_send_cb);
+    this->config_.is_connect = true;
     return true;
   }
   
-  bool send() override {
+  bool send() const override {
     this->_send();
     return this->config_.send_success;
   }  

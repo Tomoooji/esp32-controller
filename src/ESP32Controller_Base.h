@@ -76,8 +76,8 @@ protected:
 public:
   explicit ESP32ControllerResponseBase(ConfigData &&config_data, InputData &&input_data, OutputData &&output_data)
       : Controller(std::move(config_data), std::move(input_data)), output_(std::move(output_data)) {}
-  virtual bool send() = 0;
-  virtual OutputData &output() { return this->output_; }
+  virtual bool send() const = 0;
+  OutputData &output() { return this->output_; }
 };
 
 ///**

@@ -91,7 +91,7 @@ public:
    * @retval true  送信成功
    * @retval false 送信失敗
    */
-  bool send() override {
+  bool send() const override {
     return this->bluetoothserial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
 };

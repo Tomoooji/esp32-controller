@@ -106,7 +106,7 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    */
-  bool send() override {
+  bool send() const override {
     return this->serial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
