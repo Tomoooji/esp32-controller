@@ -13,6 +13,7 @@
 #ifdef ESP32
 #include "ESP32Controller_Base.h"
 
+namespace ESP32ControllerInternal {
 
 /**
  * @brief シリアル通信(UART)で構造体を受け取るクラス
@@ -20,27 +21,20 @@
  * @tparam InputData 相手から受け取るデータ(構造体)
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
-template <typename InputData>
-class ESP32Controller_Serial : public ESP32ControllerBase<ESP32Controller_Serial::Config_Serial, InputData> {
+template <HardwareSerial &Serial, typename InputData>
+class ESP32Controller_Serial : public Base<ESP32Controller_Serial::Config, InputData> {
 protected:
-  HardwareSerial& serial_;
+  HardwareSerial &serial_ = Serial;
 
 public:
   /** @brief シリアル通信(UART)の設定 */
-  struct Config_Serial : public ESP32ControllerBase<Config_Serial, InputData>::ConfigStruct {
+  struct Config : public Base<Config, InputData>::ConfigStruct {
     int baudrate = 115200;
     int Rx = -1;
     int Tx = -1;
   };
-  /**
-   * @brief ESP32Controller_Serial オブジェクトを作成
-   * 
-   * @param serial Serial or Serial2
-   * @param config_data 設定用構造体の参照
-   * @param input_data 受け取るデータ(構造体)の参照
-   */
-  ESP32Controller_Serial(HardwareSerial& serial, Config_Serial &&config_data, InputData &&input_data)
-  : ESP32ControllerBase<Config_Serial, InputData>(Config_Serial{std::move(config_data)}, std::move(input_data)), serial_(serial) {}
+  
+  using Base<Config, InputData>::Base;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -73,8 +67,6 @@ public:
   }
 };
 
-template <typename InputData>
-using ESP32Controller = ESP32Controller_Serial<InputData>;
 
 //////////
 
@@ -85,33 +77,21 @@ using ESP32Controller = ESP32Controller_Serial<InputData>;
  * @tparam OutputData 相手に送るデータ(構造体)
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
-template <typename InputData, typename OutputData>
-class ESP32Controller_Response_Serial : public ESP32ControllerResponseBase<ESP32Controller_Serial<InputData>, ESP32Controller_Serial<InputData>::Config_Serial, InputData, OutputData> {
+template <HardwareSerial &Serial, typename InputData, typename OutputData>
+class ESP32Controller_Response_Serial : public ResponseBase<ESP32Controller_Serial<Serial, InputData>, ESP32Controller_Serial<Serial, InputData>::Config, InputData, OutputData> {
 public:
-  /**
-   * @brief ESP32Controller_Serial_Response オブジェクトを作成
-   * 
-   * @param serial Serial or Serial2
-   * @param config_data 設定用構造体の参照
-   * @param input_data 受け取るデータ(構造体)の参照
-   * @param output_data 送るデータ(構造体)の参照
-   */
-  ESP32Controller_Response_Serial(HardwareSerial& serial, typename ESP32Controller_Serial<InputData>::Config_Serial &&config_data, InputData &&input_data, OutputData &&output_data)
-      : ESP32ControllerResponseBase<ESP32Controller_Serial<InputData>, typename ESP32Controller_Serial<InputData>::Config_Serial, InputData, OutputData>(
-        std::move(config_data), std::move(input_data), std::move(output_data)), serial_(serial) {}
+  using ResponseBase<ESP32Controller_Serial<Serial, InputData>, ESP32Controller_Serial<Serial, InputData>::Config, InputData, OutputData>::ResponseBase;
 
-  /**
-   * @brief loop()内で呼ばれる値の更新を行う関数
-   * 
-   * @retval true  更新あり
-   * @retval false 更新なし
-   */
   bool send() const override {
     return this->serial_.write(reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == sizeof(OutputData);
   }
 };
 
+} // namespace ESP32ControllerInternal
+
+template <HardwareSerial &Serial, typename InputData>
+using ESP32Controller = ESP32ControllerInternal::ESP32Controller_Serial<Serial, InputData>;
 template <typename InputData, typename OutputData>
-using ESP32Controller_Response = ESP32Controller_Response_Serial<InputData,OutputData>;
+using ESP32Controller_Response = ESP32ControllerInternal::ESP32Controller_Response_Serial<InputData,OutputData>;
 
 #endif

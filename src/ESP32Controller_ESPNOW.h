@@ -16,6 +16,8 @@
 #include <WiFi.h>
 #include "ESP32Controller_Base.h"
 
+namespace ESP32ControllerInternal {
+
 /**
  * @brief ESP-NOWで構造体を受け取るクラス
  * 
@@ -23,7 +25,7 @@
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class ESP32Controller_ESPNOW : public ESP32ControllerBase<ESP32Controller_ESPNOW::Config_ESPNOW, InputData> {
+class ESP32Controller_ESPNOW : public Base<ESP32Controller_ESPNOW::Config, InputData> {
 protected:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
   InputData input_buffer_; 
@@ -59,11 +61,11 @@ protected:
 
 public:
   /** @brief ESP-NOW(受信only)用設定 */
-  struct Config_ESPNOW : public ESP32ControllerBase<Config_ESPNOW, InputData>::ConfigStruct {
+  struct Config : public Base<Config, InputData>::ConfigStruct {
     volatile bool receive_new = false; ///< 値の更新フラグ
     bool is_connect = false; ///< 受信できているかどうかのフラグ
   };
-  using ESP32ControllerBase<Config_ESPNOW, InputData>::ESP32ControllerBase;
+  using Base<Config, InputData>::Base;
   /**
    * @brief setup()で呼ばれる初期化関数
    * @details WiFiのモード設定、ESP_NOWの初期化、コールバック関数の登録を行う
@@ -106,9 +108,6 @@ public:
   }
 };
 
-template <typename InputData>
-using ESP32Controller = ESP32Controller_ESPNOW<InputData>;
-
 
 /**
  * @brief ESP-NOWで構造体を送受信するクラス
@@ -121,7 +120,7 @@ using ESP32Controller = ESP32Controller_ESPNOW<InputData>;
  * @attention 受信onlyの方でstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutputData>
-class ESP32Controller_Response_ESPNOW : public ESP32ControllerResponseBase<ESP32Controller_ESPNOW<InputData>, ESP32Controller_Response_ESPNOW::Config_Response_ESPNOW, InputData, OutputData> {
+class ESP32Controller_Response_ESPNOW : public ResponseBase<ESP32Controller_ESPNOW<InputData>, ESP32Controller_Response_ESPNOW::Config, InputData, OutputData> {
 private:
   /**
    * @brief 送信時のコールバック関数
@@ -142,33 +141,33 @@ private:
   }
 #endif
 
-  /**
-   * @brief 構造体を相手に送る関数
-   * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
-   */
-  void _send() {
-    esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
-  }
+  ///**
+  // * @brief 構造体を相手に送る関数
+  // * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
+  // */
+  //void _send() {
+  //  esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
+  //}
 
 public:
   /** 
    * @brief ESP-NOW(送受信)用設定
    * @code 
    *   // ~C++17
-   *   Config_ESPNOW_Response config{ {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E} };
+   *   Config config{ {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E} };
    *   // C++20以降は指示付き初期化子が使える
-   *   Config_ESPNOW_Response config{
+   *   Config config{
    *      .mac_peer = {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E};
    *   }
    * @endcode
    */
-  struct Config_Response_ESPNOW : public ESP32Controller_ESPNOW::Config_ESPNOW {
+  struct Config : public ESP32Controller_ESPNOW::Config {
     //const uint8_t* mac_peer = nullptr; ///< 送信先のMACアドレス
     //volatile bool receive_new = false;
     volatile bool send_success = false;
   };
 
-  using ESP32ControllerResponseBase<ESP32Controller_ESPNOW<InputData>, Config_Response_ESPNOW, InputData, OutputData>::ESP32ControllerResponseBase;
+  using ResponseBase<ESP32Controller_ESPNOW<InputData>, Config, InputData, OutputData>::ResponseBase;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -197,11 +196,16 @@ public:
   }
   
   bool send() const override {
-    this->_send();
-    return this->config_.send_success;
+    //this->_send();
+    //return this->config_.send_success;
+    return esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == ESP_OK;
   }  
 };  
+
+} // namespace ESP32ControllerInternal
+template <typename InputData>
+using ESP32Controller = ESP32ControllerInternal::ESP32Controller_ESPNOW<InputData>;
 template <typename InputData, typename OutputData>
-using ESP32Controller_Response = ESP32Controller_Response_ESPNOW<InputData,OutputData>;
+using ESP32Controller_Response = ESP32ControllerInternal::ESP32Controller_Response_ESPNOW<InputData,OutputData>;
 
 #endif

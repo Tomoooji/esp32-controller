@@ -14,6 +14,8 @@
 #include <BluetoothSerial.h>
 #include "ESP32Controller_Base.h"
 
+namespace ESP32ControllerInternal {
+
 /**
  * @brief BluetoothSerialで構造体を受信するクラス
  * 
@@ -21,19 +23,19 @@
  * @attention InputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData>
-class ESP32Controller_BluetoothSerial : public ESP32ControllerBase<ESP32Controller_BluetoothSerial::Config_BluetoothSerial, InputData> {
+class ESP32Controller_BluetoothSerial : public Base<ESP32Controller_BluetoothSerial::Config, InputData> {
 protected:
   BluetoothSerial bluetoothserial_;
 
 public:
   /** @brief BluetoothSerial用設定 */
-  struct Config_BluetoothSerial  : public ESP32ControllerBase<Config_BluetoothSerial, InputData>::ConfigStruct {
+  struct Config  : public Base<Config, InputData>::ConfigStruct {
     const char* device_name = "ESP32_BT"; ///< デバイス名
     bool as_master = false; ///< trueならマスター、falseならスレーブ
   };
 
   /** @brief コンストラクタ */
-  using ESP32ControllerBase<Config_BluetoothSerial, InputData>::ESP32ControllerBase;
+  using Base<Config, InputData>::Base;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -71,8 +73,8 @@ public:
 };
 
 
-template <typename InputData>
-using ESP32Controller = ESP32Controller_BluetoothSerial<InputData>;
+////////////////
+
 
 /**
  * @brief BluetoothSerialで構造体を送受信するクラス
@@ -82,9 +84,9 @@ using ESP32Controller = ESP32Controller_BluetoothSerial<InputData>;
  * @attention InputData,OutputDataは__attribute__((__packed__))を付けて宣言し、パディングを無効化すること
  */
 template <typename InputData, typename OutputData>
-class ESP32Controller_Response_BluetoothSerial : public ESP32ControllerResponseBase<ESP32Controller_BluetoothSerial<InputData>, ESP32Controller_BluetoothSerial::Config_BluetoothSerial, InputData, OutputData> {
+class ESP32Controller_Response_BluetoothSerial : public ResponseBase<ESP32Controller_BluetoothSerial<InputData>, ESP32Controller_BluetoothSerial::Config, InputData, OutputData> {
 public:
-  using ESP32ControllerResponseBase<ESP32Controller_BluetoothSerial<InputData>, ESP32Controller_BluetoothSerial::Config_BluetoothSerial, InputData, OutputData>::ESP32ControllerResponseBase;
+  using ResponseBase<ESP32Controller_BluetoothSerial<InputData>, ESP32Controller_BluetoothSerial::Config, InputData, OutputData>::ResponseBase;
   /**
    * @brief 構造体を相手に送る関数
    * 
@@ -96,7 +98,11 @@ public:
   }
 };
 
+} // namespace ESP32ControllerInternal
+
+template <typename InputData>
+using ESP32Controller = ESP32ControllerInternal::ESP32Controller_BluetoothSerial<InputData>;
 template <typename InputData, typename OutputData>
-using ESP32Controller_Response = ESP32Controller_Response_BluetoothSerial<InputData,OutputData>;
+using ESP32Controller_Response = ESP32ControllerInternal::ESP32Controller_Response_BluetoothSerial<InputData,OutputData>;
 
 #endif

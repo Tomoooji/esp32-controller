@@ -12,10 +12,13 @@
 #include <concepts>
 #include <Arduino.h>
 
-/** @brief インターフェース */
-class ESP32ControllerInterface {
+namespace ESP32ControllerInternal {
+
+  
+  /** @brief インターフェース */
+  class Interface {
 public:
-  virtual ~ESP32ControllerInterface() = default;
+virtual ~Interface() = default;
   virtual bool begin() = 0;
   virtual bool update() = 0;
 };
@@ -26,14 +29,14 @@ public:
  * @tparam InputData 入力データの型
  */
 template <typename ConfigData, typename InputData>
-class ESP32ControllerBase : public ESP32ControllerInterface {
+class Base : public Interface {
 protected:
   struct ConfigStruct{};
   ConfigData config_;
   InputData input_;
 
   public:
-  explicit ESP32ControllerBase(ConfigData &&config_data, InputData &&input_data)
+  explicit Base(ConfigData &&config_data, InputData &&input_data)
   : config_(std::move(config_data)), input_(std::move(input_data)) {}
   InputData &input() { return this->input_; }
   ConfigData &config() { return this->config_; }
@@ -45,17 +48,17 @@ protected:
 // * @tparam InputData 
 // */
 //template <typename InputData>
-//class ESP32ControllerDummy : public ESP32ControllerBase<ESP32ControllerDummy::ConfigDummy, InputData> {
-//protected:
-//public:
-//  struct ConfigDummy : public ESP32ControllerBase<ConfigDummy, InputData>::ConfigStruct {};
-//  using ESP32ControllerBase<ConfigDummy, InputData>::ESP32ControllerBase;
+//class ESP32ControllerDummy : public Base<ESP32ControllerDummy::ConfigDummy, InputData> {
+  //protected:
+  //public:
+//  struct ConfigDummy : public Base<ConfigDummy, InputData>::ConfigStruct {};
+//  using Base<ConfigDummy, InputData>::Base;
 //  //ESP32ControllerDummy(ConfigDummy &&config_data, InputData &&input_data)
-//  //: ESP32ControllerBase<ConfigDummy, InputData>(ConfigDummy{std::move(config_data)}, std::move(input_data)) {}
+//  //: Base<ConfigDummy, InputData>(ConfigDummy{std::move(config_data)}, std::move(input_data)) {}
 //  bool begin() override {
-//    return true;
-//  }
-//  bool update() override {
+  //    return true;
+  //  }
+  //  bool update() override {
 //    return false;
 //  }
 //};
@@ -68,13 +71,13 @@ protected:
  * @tparam InputData 
  * @tparam OutputData 
  */
-template <std::derived_from<ESP32ControllerInterface> Controller, typename ConfigData, typename InputData, typename OutputData>
-class ESP32ControllerResponseBase : public Controller {
+template <std::derived_from<Interface> Controller, typename ConfigData, typename InputData, typename OutputData>
+class ResponseBase : public Controller {
 protected:
-  OutputData output_;
+OutputData output_;
 
 public:
-  explicit ESP32ControllerResponseBase(ConfigData &&config_data, InputData &&input_data, OutputData &&output_data)
+  explicit ResponseBase(ConfigData &&config_data, InputData &&input_data, OutputData &&output_data)
       : Controller(std::move(config_data), std::move(input_data)), output_(std::move(output_data)) {}
   virtual bool send() const = 0;
   OutputData &output() { return this->output_; }
@@ -87,12 +90,12 @@ public:
 // * @tparam OutputData 
 // */
 //template <typename InputData, typename OutputData>
-//class ESP32ControllerResponseDummy : public ESP32ControllerResponseBase<ESP32ControllerDummy<InputData>, ESP32ControllerResponseDummy::ConfigResponseDummy, InputData, OutputData> {
-//public:
+//class ESP32ControllerResponseDummy : public ResponseBase<ESP32ControllerDummy<InputData>, ESP32ControllerResponseDummy::ConfigResponseDummy, InputData, OutputData> {
+  //public:
 //  struct ConfigResponseDummy : public ESP32ControllerDummy<InputData>::ConfigDummy {};
-//  using ESP32ControllerResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy, InputData, OutputData>::ESP32ControllerResponseBase;
+//  using ResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy, InputData, OutputData>::ResponseBase;
 //  //ESP32ControllerResponseDummy(ConfigResponseDummy &&config_data, InputData &&input_data, OutputData &&output_data)
-//  //    : ESP32ControllerResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy, InputData, OutputData>(
+//  //    : ResponseBase<ESP32ControllerDummy<InputData>, ConfigResponseDummy, InputData, OutputData>(
 //  //      std::move(config_data), std::move(input_data), std::move(output_data)) {}
 //  bool begin() override {
 //    return true;
@@ -101,8 +104,10 @@ public:
 //    return false;
 //  }
 //  bool send() override {
-//    return;
-//  }
-//};
-
-#endif
+  //    return;
+  //  }
+  //};
+  
+} // namespace ESP32ControllerInternal
+  #endif
+  

@@ -16,6 +16,8 @@
 #include <Wire.h>
 #include "ESP32Controller_Base.h"
 
+namespace ESP32ControllerInternal {
+
 /**
  * @brief I2C(Master)で構造体を受け取るクラス
  * 
@@ -24,16 +26,16 @@
  * @note 機体側は他のI2C機器との接続がありうるのでMasterとして運用
  */
 template <typename InputData>
-class ESP32Controller_I2C_Master : public ESP32ControllerBase<ESP32Controller_I2C_Master::Config_I2C_Master, InputData> {
+class ESP32Controller_I2CMaster : public Base<ESP32Controller_I2CMaster::Config, InputData> {
 public:
   /**　@brief I2C通信用の設定　*/
-  struct Config_I2C_Master : public ESP32ControllerBase<Config_I2C_Master, InputData>::ConfigStruct {
+  struct Config : public Base<Config, InputData>::ConfigStruct {
     uint8_t address_slave; //初期値は 0x2A など
     int sda = -1;
     int scl = -1;
     uint32_t frequency = 0; // 0ならデフォルトの100kHz
   };
-  using ESP32ControllerBase<Config_I2C_Master, InputData>::ESP32ControllerBase;
+  using Base<Config, InputData>::Base;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -77,9 +79,6 @@ public:
   }
 };
 
-template <typename InputData>
-using ESP32Controller = ESP32Controller_I2C_Master<InputData>;
-
 /////////////////
 
 /**
@@ -92,9 +91,9 @@ using ESP32Controller = ESP32Controller_I2C_Master<InputData>;
  * @note 機体側は他のI2C機器との接続がありうるのでMasterとして運用
  */
 template <typename InputData, typename OutputData>
-class ESP32Controller_Response_I2C_Master : public ESP32ControllerResponseBase<ESP32Controller_I2C_Master<InputData>, ESP32Controller_I2C_Master::ConfigResponseI2C_Master, InputData, OutputData> {
+class ESP32Controller_Response_I2CMaster : public ResponseBase<ESP32Controller_I2CMaster<InputData>, ESP32Controller_I2CMaster::Config, InputData, OutputData> {
 public:
-  using ESP32ControllerResponseBase<ESP32Controller_I2C_Master<InputData>, ESP32Controller_I2C_Master::ConfigResponseI2C_Master, InputData, OutputData>::ESP32ControllerResponseBase;
+  using ResponseBase<ESP32Controller_I2CMaster<InputData>, ESP32Controller_I2CMaster::Config, InputData, OutputData>::ResponseBase;
   
   /**
    * @brief 構造体を相手に送る関数
@@ -110,10 +109,6 @@ public:
   }
 };
 
-template <typename InputData, typename OutputData>
-using ESP32Controller_Response = ESP32Controller_Response_I2C_Master<InputData,OutputData>;
-
-
 // ============================================
 // スレーブ用（外部マスターからコマンド受信）-> 基本使わない方針で
 // ============================================
@@ -126,18 +121,18 @@ using ESP32Controller_Response = ESP32Controller_Response_I2C_Master<InputData,O
  */
 
 template <typename InputData>
-class ESP32Controller_I2C_Slave : public ESP32ControllerBase<ESP32Controller_I2C_Slave::Config_I2C_Slave, InputData> {
+class ESP32Controller_I2CSlave : public Base<ESP32Controller_I2CSlave::Config, InputData> {
 protected:
   portMUX_TYPE recv_mux = portMUX_INITIALIZER_UNLOCKED;
   InputData input_buffer_; 
-  inline static ESP32Controller_I2C_Slave *_instance = nullptr; //!< C++17以上でないと使えない
+  inline static ESP32Controller_I2CSlave *_instance = nullptr; //!< C++17以上でないと使えない
   
   /**
    * @brief 受信時のコールバック関数
    * @details 受け取ったデータをinput_buffer_にコピーし、configの新規受信フラグを立てる
    * 
    * @param size 受け取ったデータのサイズ
-   * @see ESP32Controller_I2C_Slave_Response::static_recv_cb
+   * @see ESP32Controller_I2CSlave_Response::static_recv_cb
    */
   static void static_recv_cb(int size) {
     if (_instance == nullptr) return;
@@ -159,7 +154,7 @@ protected:
 
 public:
   /** @brief I2C通信用の設定(スレーブ用) */
-  struct Config_I2C_Slave : public ESP32ControllerBase<Config_I2C_Slave, InputData>::ConfigStruct {
+  struct Config : public Base<Config, InputData>::ConfigStruct {
     uint8_t address;
     int sda = -1;
     int scl = -1;
@@ -168,7 +163,7 @@ public:
     bool is_connect = false;
   };
 
-  using ESP32ControllerBase<ConfigDummy, InputData>::ESP32ControllerBase;
+  using Base<Config, InputData>::Base;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -193,7 +188,7 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    * @note コピーしてる間はCritical Sectionでコールバック関数を止めている。
-   * @see ESP32Controller_I2C_Slave_Response::update
+   * @see ESP32Controller_I2CSlave_Response::update
    */
   bool update() override {
     // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
@@ -227,7 +222,7 @@ public:
  * @attention 受信onlyの方でstatic_recv_cbを変更してもこちらとは同期されてない
  */
 template <typename InputData, typename OutputData>
-class ESP32Controller_Response_I2C_Slave : public ESP32ControllerResponseBase<ESP32Controller_I2C_Slave<InputData>, ESP32Controller_Response_I2C_Slave::Config_Response_I2C_Slave, InputData, OutputData> {
+class ESP32Controller_Response_I2CSlave : public ResponseBase<ESP32Controller_I2CSlave<InputData>, ESP32Controller_Response_I2CSlave::Config, InputData, OutputData> {
 private:
   OutputData output_buffer_; //!< 送信バッファ
 
@@ -245,11 +240,11 @@ private:
 
 public:
   /** @brief I2C通信用の設定(スレーブ、送受信用) */
-  struct Config_Response_I2C_Slave : public ESP32Controller_I2C_Slave<InputData>::Config_I2C_Slave {
+  struct Config : public ESP32Controller_I2CSlave<InputData>::Config {
     volatile bool send_success;
   };
 
-  using ESP32ControllerResponseBase<ESP32Controller_I2C_Slave<InputData>, Config_Response_I2C_Slave, InputData, OutputData>::ESP32ControllerResponseBase;
+  using ResponseBase<ESP32Controller_I2CSlave<InputData>, Config, InputData, OutputData>::ResponseBase;
 
   /**
    * @brief setup()で呼ばれる初期化関数
@@ -275,7 +270,7 @@ public:
    * @retval true  更新あり
    * @retval false 更新なし
    * @note コピーしてる間はCritical Sectionでコールバック関数を止めている。
-   * @see ESP32Controller_I2C_Slave_Response::update
+   * @see ESP32Controller_I2CSlave_Response::update
    */
   bool update() override {
     // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
@@ -300,5 +295,11 @@ public:
   }
 };
 
+} // namespace ESP32ControllerInternal
+
+template <typename InputData>
+using ESP32Controller = ESP32ControllerInternal::ESP32Controller_I2CMaster<InputData>;
+template <typename InputData, typename OutputData>
+using ESP32Controller_Response = ESP32ControllerInternal::ESP32Controller_Response_I2CMaster<InputData,OutputData>;
 
 #endif

@@ -15,14 +15,16 @@
 #include <PS4Controller.h>
 #include "ESP32Controller_Base.h"
 
-/**
+namespace ESP32ControllerInternal{
+
+  /**
  * @brief DualShock4から入力値を受け取るクラス
  * @details PS4Controllerライブラリのラッパー?みたいな状態
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
 template <typename InputData>
-class ESP32Controller_PS4 : public ESP32ControllerBase<ESP32Controller_PS4::Config_PS4, InputData> {
+class ESP32Controller_PS4 : public Base<ESP32Controller_PS4::Config, InputData> {
 protected:
 public:
   /** 
@@ -36,12 +38,12 @@ public:
    * @endcode
    * @note MACアドレスなしで初期化するとESP32のMACアドレスが使われる。
    */
-  struct Config_PS4 : public ESP32ControllerBase<Config_PS4, InputData>::ConfigStruct {
+  struct Config : public Base<Config, InputData>::ConfigStruct {
     const char* mac = nullptr;
   };
-
-  using ESP32ControllerBase<Config_PS4, InputData>::ESP32ControllerBase;
-
+  
+  using Base<Config, InputData>::Base;
+  
   /**
    * @brief setup()で呼ばれる初期化関数
    * 
@@ -51,7 +53,7 @@ public:
   bool begin() override {
     return PS4.begin(this->config_.mac);
   }
-
+  
   /**
    * @brief 入力値の代入用関数
    * 
@@ -68,7 +70,10 @@ public:
   }
 };
 
+
+} // namespace ESP32ControllerInternal
+
 template <typename InputData>
-using ESP32Controller = ESP32Controller_PS4<InputData>;
+using ESP32Controller = ESP32ControllerInternal::ESP32Controller_PS4<InputData>;
 
 #endif
