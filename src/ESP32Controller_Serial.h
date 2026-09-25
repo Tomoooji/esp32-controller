@@ -2,11 +2,12 @@
  * @file ESP32Controller_Serial.h
  * @brief シリアル通信(UART)で構造体をやり取りするライブラリ
  * 
- * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-09-07
- * @copyright Copyright (c) 2026
- * 
  * @note 
+ * 
+ * @author Tomoooji (https://github.com/Tomoooji)
+ * @version 2.0.0
+ * @date 2026-09-25
+ * @copyright Copyright (c) 2026
  */
 
 #pragma once
@@ -91,7 +92,7 @@ public:
 
 template <HardwareSerial &Serial, typename InputData>
 using ESP32Controller = ESP32ControllerInternal::ESP32Controller_Serial<Serial, InputData>;
-template <typename InputData, typename OutputData>
-using ESP32Controller_Response = ESP32ControllerInternal::ESP32Controller_Response_Serial<InputData,OutputData>;
+template <HardwareSerial &Serial, typename InputData, typename OutputData>
+using ESP32Controller_Response = ESP32ControllerInternal::ESP32Controller_Response_Serial<Serial, InputData,OutputData>;
 
 #endif

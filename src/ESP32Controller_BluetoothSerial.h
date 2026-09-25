@@ -2,11 +2,12 @@
  * @file ESP32Controller_BluetoothSerial.h
  * @brief BluetoothSerialで構造体をやり取りするライブラリ
  * 
- * @author Tomoooji (https://github.com/Tomoooji)
- * @date 2026-09-07
- * @copyright Copyright (c) 2026
- * 
  * @todo SPPまわり
+ * 
+ * @author Tomoooji (https://github.com/Tomoooji)
+ * @version 2.0.0
+ * @date 2026-09-25
+ * @copyright Copyright (c) 2026
  */
 
 #pragma once

@@ -7,14 +7,15 @@
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
  * @version 2.0.0
- * @date 2026-09-22
+ * @date 2026-09-25
  * @copyright Copyright (c) 2026
  */
 
 #pragma once
 #ifdef ESP32
-#include <Arduino.h>
+#include <utility>
 #include <concepts>
+#include <Arduino.h>
 
 namespace ESP32ControllerInternal {
 
