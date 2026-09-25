@@ -3,7 +3,7 @@
  * @brief PS4コントローラー(DualShock4)からBluetoothで入力値を受け取るライブラリ
  * 
  * @attention C++20以上が必要です。
- * @attention 入力用構造体にはvoid apply()関数を定義する必要があります。
+ * @attention 入力用構造体には関数apply()を定義する必要があります。
  * @note 結構無理くりラップしてるので他クラスとの互換性が不要ならそのまま使うことを推奨します。
  * 
  * @author Tomoooji (https://github.com/Tomoooji)
@@ -25,7 +25,7 @@ namespace ESP32ControllerInternal{
  * 
  * @tparam InputData 相手から受け取るデータ(構造体)
  */
-template <typename InputData>
+template <typename InputData> requires requires(InputData input) { {input.apply()}; }
 class ESP32Controller_PS4 : public Base<ESP32Controller_PS4::Config, InputData> {
 protected:
 public:

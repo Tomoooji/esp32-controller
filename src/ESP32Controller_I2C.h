@@ -14,6 +14,7 @@
 
 #pragma once
 #ifdef ESP32
+#include <atomic>
 #include <Arduino.h>
 #include <Wire.h>
 #include "ESP32Controller_Base.h"
@@ -149,7 +150,7 @@ protected:
       while(Wire.available() > 0) {
         Wire.read();
       }
-      _instance->config_.receive_new = true;
+      _instance->config_.receive_new.store(true);
       portEXIT_CRITICAL(&_instance->recv_mux);
     }
   }
@@ -161,8 +162,7 @@ public:
     int sda = -1;
     int scl = -1;
     uint32_t frequency = 0; // 0ならデフォルトの100kHz
-    volatile bool receive_new;
-    bool is_connect = false;
+    std::atomic<bool> receive_new;
   };
 
   using Base<Config, InputData>::Base;
@@ -179,7 +179,6 @@ public:
     if (!Wire.begin(this->config_.address, this->config_.sda, this->config_.scl)) return false;
     _instance = this;
     Wire.onReceive(static_recv_cb);
-    this->config_.is_connect = true;
     return true;
   }
 
@@ -193,20 +192,18 @@ public:
    * @see ESP32Controller_I2CSlave_Response::update
    */
   bool update() override {
-    // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
-    // ↓ onReceiveに渡すコールバック関数内でxPortIsrContext()を実行してtrueだったらそっちに変えてくださいな
-    portENTER_CRITICAL(&this->recv_mux);
-    // ここに巨大な処理を入れると大変なのでInputDataは控えめなサイズにする
-      if (this->config_.receive_new) {
-        memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
-        this->config_.receive_new = false;
-        this->config_.is_connect = true;
-      } else {
-        this->config_.is_connect = false;
-      }
+    if (this->config_.receive_new.load()) {
+      // ここに巨大な処理を入れると大変なのでInputDataは控えめなサイズにする
+      // ↓ onReceiveに渡すコールバック関数内でxPortIsrContext()を実行してtrueだったらそっちに変えてくださいな
+      // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
+      portENTER_CRITICAL(&this->recv_mux);
+      memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
+      this->config_.receive_new.store(false);
       // ↓ こちらも同じく。I2Cの受信コールバックがISRならそれ用に_ISRつけたやつを呼ぶ必要がある。
       portEXIT_CRITICAL(&this->recv_mux);
-    return this->config_.is_connect;
+      return true;
+    }
+    return false;
   }
 };
 
@@ -236,14 +233,15 @@ private:
     if (_instance == nullptr) return;
     // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
     portENTER_CRITICAL(&_instance->recv_mux);
-    _instance->config_.send_success = Wire.write(reinterpret_cast<uint8_t*>(&_instance->output_buffer_), sizeof(OutputData)) == sizeof(OutputData);
+    bool result = Wire.write(reinterpret_cast<uint8_t*>(&_instance->output_buffer_), sizeof(OutputData)) == sizeof(OutputData);
     portEXIT_CRITICAL(&_instance->recv_mux);
+    _instance->config_.send_success.store(result);
   }
 
 public:
   /** @brief I2C通信用の設定(スレーブ、送受信用) */
   struct Config : public ESP32Controller_I2CSlave<InputData>::Config {
-    volatile bool send_success;
+    std::atomic<bool> send_success;
   };
 
   using ResponseBase<ESP32Controller_I2CSlave<InputData>, Config, InputData, OutputData>::ResponseBase;
@@ -261,7 +259,6 @@ public:
     _instance = this;
     Wire.onReceive(static_recv_cb);
     Wire.onRequest(static_request_cb);
-    this->config_.is_connect = true;
     return true;
   }
 
@@ -275,25 +272,24 @@ public:
    * @see ESP32Controller_I2CSlave_Response::update
    */
   bool update() override {
-    // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
-    // ↓ onReceiveに渡すコールバック関数内でxPortIsrContext()を実行してtrueだったらそっちに変えてくださいな
-    portENTER_CRITICAL(&this->recv_mux);
-    if (this->config_.receive_new) {
+    if (this->config_.receive_new.load()) {
+      // ↓ onReceiveに渡すコールバック関数内でxPortIsrContext()を実行してtrueだったらそっちに変えてくださいな
+      // ↓ 多分あってるけど、もしかしたらportENTER_CRITICAL_ISRの方が正解かもしれない
+      portENTER_CRITICAL(&this->recv_mux);
       // ここに巨大な処理を入れると大変なのでInputDataは控えめなサイズにする
       memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
       memcpy(&this->output_buffer_,&this->output_,sizeof(OutputData));// 送信バッファにコピー
-      this->config_.receive_new = false;
-      this->config_.is_connect = true;
-    } else {
-      this->config_.is_connect = false;
+      // ↓ こちらも同じく。I2Cの受信コールバックがISRならそれ用に_ISRつけたやつを呼ぶ必要がある。
+      portEXIT_CRITICAL(&this->recv_mux);
+      this->config_.receive_new.store(false);
+      return true;
     }
-    // ↓ こちらも同じく。I2Cの受信コールバックがISRならそれ用に_ISRつけたやつを呼ぶ必要がある。
-    portEXIT_CRITICAL(&this->recv_mux);
-    return this->config_.is_connect;
+    return false;
   }
 
   bool send() const override {
-    return this->config_.is_connect;
+    // 送信はリクエストが来たときにコールバック関数で行われるので、ここではフラグの状態を返すだけ
+    return this->config_.send_success.load();
   }
 };
 

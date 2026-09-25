@@ -47,7 +47,7 @@ public:
    * @param config_data 設定用構造体の右辺値参照(その場で作った構造体を渡すことを想定)
    * @param input_data 入力用構造体の右辺値参照(その場で作った構造体を渡すことを想定)
    */
-  explicit Base(ConfigData &&config_data, InputData &&input_data)
+  explicit Base(ConfigData &&config_data, InputData /*&&*/input_data)
       : config_(std::move(config_data)), input_(std::move(input_data)) {}
 
   ConfigData &config() { return this->config_; } ///< 設定データの実体への参照を返す
@@ -69,7 +69,7 @@ protected:
   OutputData output_; ///< 送信データの実体(非同期に更新される場合は別途bufferを用意する必要がある)
 
 public:
-  explicit ResponseBase(ConfigData &&config_data, InputData &&input_data, OutputData &&output_data)
+  explicit ResponseBase(ConfigData &&config_data, InputData /*&&*/input_data, OutputData /*&&*/output_data)
       : Controller(std::move(config_data), std::move(input_data)), output_(std::move(output_data)) {}
   virtual bool send() const = 0; ///< 送信用関数(非同期に送信する場合はCriticalSectionを使ってbufferにOutputDataの実体をコピーして送信する必要がある)
   OutputData &output() { return this->output_; } ///< 送信データの実体への参照を返す

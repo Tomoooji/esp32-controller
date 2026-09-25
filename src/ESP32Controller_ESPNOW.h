@@ -14,6 +14,7 @@
 
 #pragma once
 #ifdef ESP32
+#include <atomic>
 #include <esp_now.h>
 #include <WiFi.h>
 #include "ESP32Controller_Base.h"
@@ -49,7 +50,7 @@ protected:
     if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
     portENTER_CRITICAL(&_instance->recv_mux);
     memcpy(&_instance->input_buffer_, data, sizeof(InputData));
-    _instance->config_.receive_new = true;
+    _instance->config_.receive_new.store(true);
     portEXIT_CRITICAL(&_instance->recv_mux);
   }
 #else
@@ -57,7 +58,7 @@ protected:
     if (_instance == nullptr || sizeof(InputData) != len) return; // _instance->config_.receive_new || はいらないはず
     portENTER_CRITICAL(&_instance->recv_mux);
     memcpy(&_instance->input_buffer_, data, sizeof(InputData));
-    _instance->config_.receive_new = true;
+    _instance->config_.receive_new.store(true);
     portEXIT_CRITICAL(&_instance->recv_mux);
   }
 #endif
@@ -65,8 +66,7 @@ protected:
 public:
   /** @brief ESP-NOW(受信only)用設定 */
   struct Config : public Base<Config, InputData>::ConfigStruct {
-    volatile bool receive_new = false; ///< 値の更新フラグ
-    bool is_connect = false; ///< 受信できているかどうかのフラグ
+    std::atomic<bool> receive_new = false; ///< 値の更新フラグ
   };
 
   using Base<Config, InputData>::Base;
@@ -85,7 +85,6 @@ public:
     // コールバック関数登録 static関数なので複数インスタンス作るとバグる
     _instance = this;
     esp_now_register_recv_cb(static_recv_cb);
-    this->config_.is_connect = true;
     return true;
   }
 
@@ -99,17 +98,15 @@ public:
    * @see Controller_ESPNOW_Response::update
    */
   bool update() override {
-    portENTER_CRITICAL(&this->recv_mux);
-    // ここに巨大な処理を入れると大変だけどそもそもESP-NOWが扱えるデータ量(250バイト)的にmemcpyしてもそんなに重たくない...はず
-    if (this->config_.receive_new) {
+    if (this->config_.receive_new.load()) {
+      portENTER_CRITICAL(&this->recv_mux);
+      // ここに巨大な処理を入れると大変だけどそもそもESP-NOWが扱えるデータ量(250バイト)的にmemcpyしてもそんなに重たくない...はず
       memcpy(&this->input_,&this->input_buffer_,sizeof(InputData));
-      this->config_.receive_new = false;
-      this->config_.is_connect = true;      
-    } else {
-      this->config_.is_connect = false;
+      portEXIT_CRITICAL(&this->recv_mux);
+      this->config_.receive_new.store(false);
+      return true;
     }
-    portEXIT_CRITICAL(&this->recv_mux);
-    return this->config_.is_connect;
+    return false;
   }
 };
 
@@ -137,39 +134,31 @@ private:
 #if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(5, 0, 0)
   static void static_send_cb(const uint8_t* info ,const esp_now_send_status_t flag) {
     if (_instance == nullptr) return;
-    _instance->config_.send_success = (flag == ESP_NOW_SEND_SUCCESS);
+    _instance->config_.send_success.store(flag == ESP_NOW_SEND_SUCCESS);
   }
 #else
   static void static_send_cb(const esp_now_send_info_t* info ,const esp_now_send_status_t flag) {
     if (_instance == nullptr) return;
-    _instance->config_.send_success = (flag == ESP_NOW_SEND_SUCCESS);
+    _instance->config_.send_success.store(flag == ESP_NOW_SEND_SUCCESS);
   }
 #endif
 
-  ///**
-  // * @brief 構造体を相手に送る関数
-  // * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
-  // */
-  //void _send() {
-  //  esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
-  //}
+  /**
+   * @brief 構造体を相手に送る関数
+   * @attention こいつだけvoidなのでif文に突っ込まないこと。送信できたかどうかはget_config.send_successを参照する。
+   */
+  void _send() {
+    esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData));
+  }
 
 public:
   /** 
    * @brief ESP-NOW(送受信)用設定
-   * @code 
-   *   // ~C++17
-   *   Config config{ {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E} };
-   *   // C++20以降は指示付き初期化子が使える
-   *   Config config{
-   *      .mac_peer = {0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E};
-   *   }
-   * @endcode
    */
   struct Config : public ESP32Controller_ESPNOW::Config {
-    //const uint8_t* mac_peer = nullptr; ///< 送信先のMACアドレス
+    const uint8_t* mac_peer = nullptr; ///< 送信先のMACアドレス
     //volatile bool receive_new = false;
-    volatile bool send_success = false;
+    std::atomic<bool> send_success = false;
   };
 
   using ResponseBase<ESP32Controller_ESPNOW<InputData>, Config, InputData, OutputData>::ResponseBase;
@@ -196,15 +185,14 @@ public:
     _instance = this;
     esp_now_register_recv_cb(static_recv_cb);
     esp_now_register_send_cb(static_send_cb);
-    this->config_.is_connect = true;
     return true;
   }
   
   bool send() const override {
-    //this->_send();
-    //return this->config_.send_success;
-    return esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == ESP_OK;
-  }  
+    this->_send();
+    return this->config_.send_success.load();
+    //return esp_now_send(this->config_.mac_peer, reinterpret_cast<uint8_t*>(&this->output_), sizeof(OutputData)) == ESP_OK;
+  }
 };  
 
 } // namespace ESP32ControllerInternal
